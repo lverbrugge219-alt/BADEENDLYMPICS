@@ -1,15 +1,38 @@
-import React, { useState } from 'react';
-import { PageRoute } from '../types';
+import React, { useState, useEffect } from 'react';
+import { PageRoute, Team } from '../types';
 import { BADEEND_LOGO_SRC } from '../assets/logo';
-import { Menu, X, ShieldAlert } from 'lucide-react';
+import { getAdminSession, getTeamSession } from '../utils/storage';
+import { Menu, X, ShieldAlert, Lock, UserCheck } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: PageRoute;
   onNavigate: (page: PageRoute) => void;
+  onNavigateLoginWithTab?: (page: PageRoute, tab: 'team' | 'organisatie') => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  currentPage,
+  onNavigate,
+  onNavigateLoginWithTab,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [activeTeam, setActiveTeam] = useState<Team | null>(null);
+
+  const checkAuth = () => {
+    setIsAdmin(getAdminSession());
+    setActiveTeam(getTeamSession());
+  };
+
+  useEffect(() => {
+    checkAuth();
+    window.addEventListener('badeendlympics_auth_change', checkAuth);
+    window.addEventListener('badeendlympics_data_change', checkAuth);
+    return () => {
+      window.removeEventListener('badeendlympics_auth_change', checkAuth);
+      window.removeEventListener('badeendlympics_data_change', checkAuth);
+    };
+  }, []);
 
   const navLinks: { label: string; page: PageRoute }[] = [
     { label: 'HOME', page: 'home' },
@@ -20,9 +43,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
   ];
 
   const isCurrent = (page: PageRoute) => {
-    if (page === 'scores' && currentPage === 'scorebeheer') return true;
+    if (page === 'scores' && currentPage === 'scorebeheer') return false;
     if (page === 'home' && currentPage.startsWith('spel-')) return false;
     return currentPage === page;
+  };
+
+  const handleLoginClick = (tab: 'team' | 'organisatie') => {
+    if (onNavigateLoginWithTab) {
+      onNavigateLoginWithTab('login', tab);
+    } else {
+      onNavigate('login');
+    }
   };
 
   return (
@@ -66,10 +97,49 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               );
             })}
 
+            {/* Auth Buttons */}
+            {isAdmin ? (
+              <button
+                onClick={() => onNavigate('scorebeheer')}
+                className={`px-3 py-1.5 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentPage === 'scorebeheer'
+                    ? 'bg-black text-amber-400'
+                    : 'bg-black text-white hover:bg-slate-800'
+                }`}
+              >
+                <ShieldAlert size={14} className="text-amber-400" />
+                SCOREBEHEER
+              </button>
+            ) : activeTeam ? (
+              <button
+                onClick={() => onNavigate('team-portal')}
+                className={`px-3 py-1.5 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentPage === 'team-portal'
+                    ? 'bg-black text-amber-400'
+                    : 'bg-slate-100 text-black hover:bg-slate-200'
+                }`}
+              >
+                <UserCheck size={14} className="text-amber-500" />
+                MIJN TEAM
+              </button>
+            ) : (
+              <button
+                onClick={() => handleLoginClick('team')}
+                className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentPage === 'login'
+                    ? 'bg-black text-white'
+                    : 'text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Lock size={13} />
+                INLOGGEN
+              </button>
+            )}
+
             {/* Inschrijven Yellow Button */}
             <button
               onClick={() => onNavigate('inschrijven')}
-              className={`ml-2 px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none ${
+              className={`ml-1 px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none ${
                 currentPage === 'inschrijven'
                   ? 'bg-black text-amber-400 border-black'
                   : 'bg-amber-400 text-black hover:bg-amber-300'
@@ -115,6 +185,48 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
               {item.label}
             </button>
           ))}
+
+          {/* Mobile Team or Admin link */}
+          {activeTeam && (
+            <button
+              onClick={() => {
+                onNavigate('team-portal');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm font-black uppercase tracking-wider flex items-center gap-2 ${
+                currentPage === 'team-portal' ? 'bg-black text-white' : 'text-amber-600 bg-amber-50'
+              }`}
+            >
+              <UserCheck size={16} /> MIJN TEAM: {activeTeam.name}
+            </button>
+          )}
+
+          {isAdmin && (
+            <button
+              onClick={() => {
+                onNavigate('scorebeheer');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm font-black uppercase tracking-wider flex items-center gap-2 ${
+                currentPage === 'scorebeheer' ? 'bg-black text-white' : 'text-sky-600 bg-sky-50'
+              }`}
+            >
+              <ShieldAlert size={16} /> SCOREBEHEER (ORGANISATIE)
+            </button>
+          )}
+
+          {!isAdmin && !activeTeam && (
+            <button
+              onClick={() => {
+                handleLoginClick('team');
+                setMobileMenuOpen(false);
+              }}
+              className="w-full text-left px-3 py-2 text-sm font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+            >
+              <Lock size={15} /> INLOGGEN (TEAM / ORGANISATIE)
+            </button>
+          )}
+
           <button
             onClick={() => {
               onNavigate('inschrijven');
@@ -123,15 +235,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             className="w-full text-center px-4 py-2.5 bg-amber-400 border-2 border-black text-black font-black uppercase tracking-wider"
           >
             MELD JE TEAM AAN
-          </button>
-          <button
-            onClick={() => {
-              onNavigate('scorebeheer');
-              setMobileMenuOpen(false);
-            }}
-            className="w-full text-left px-3 py-2 text-xs font-bold uppercase text-slate-500 hover:text-black flex items-center gap-1.5 pt-2 border-t border-slate-200"
-          >
-            <ShieldAlert size={14} /> Organisatie / Scorebeheer
           </button>
         </div>
       )}

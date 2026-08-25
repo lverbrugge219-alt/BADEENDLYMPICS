@@ -22,6 +22,7 @@ export interface Team {
   name: string;
   aanvoerder: string;
   email: string;
+  password?: string;
   members: string[];
   registeredAt: string;
   scores?: Record<string, number | null>; // spelId -> points
@@ -45,6 +46,8 @@ export type PageRoute =
   | 'scores'
   | 'deelnemers'
   | 'inschrijven'
+  | 'login'
+  | 'team-portal'
   | 'scorebeheer'
   | 'spel-geheim-01'
   | 'spel-geheim-02'

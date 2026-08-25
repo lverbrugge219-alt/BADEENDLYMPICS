@@ -31,6 +31,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed font-medium">
               3 april 2027 · Scouting Van Brederode, Papendrecht. Vijf spelen. Eén winnaar. Eeuwige roem.
             </p>
+            <div className="pt-2">
+              <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block mb-0.5">
+                Vrijwillige Jury aanmelden:
+              </span>
+              <a
+                href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1.5"
+              >
+                Lotte@scoutingpapendrecht.nl
+              </a>
+            </div>
           </div>
 
           {/* Col 2: Spelen */}
@@ -74,7 +85,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   onClick={() => onNavigate('spel-geheim-05')}
-                  className="text-amber-400 hover:text-white transition-colors cursor-pointer text-left"
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Nog Geheim #05
                 </button>
@@ -122,7 +133,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('scorebeheer')}
+                  onClick={() => onNavigate('login')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Teamportaal inloggen
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('login')}
                   className="text-slate-500 hover:text-amber-400 transition-colors cursor-pointer text-left"
                 >
                   Organisatie-login

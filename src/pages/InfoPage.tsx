@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
-import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Beer, Shield } from 'lucide-react';
+import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Beer, Shield, Mail, Scale } from 'lucide-react';
 
 interface InfoPageProps {
   onNavigate: (page: PageRoute) => void;
@@ -12,23 +12,27 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
   const faqs = [
     {
       q: 'Wie kan er meedoen aan de BADEENDLYMPICS?',
-      a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en bier. Teams bestaan uit exact 4 personen.',
+      a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en gezelligheid. Teams bestaan uit exact 4 personen. Ieder teamlid moet 18+ zijn voor deelname.',
+    },
+    {
+      q: 'Kan ik me aanmelden als vrijwillige Jury?',
+      a: 'Jazeker! Vrijwillige juryleden zijn van harte welkom om mee te jureren. Je kunt je aanmelden door een e-mail te sturen naar Lotte@scoutingpapendrecht.nl.',
     },
     {
       q: 'Moeten we ons eigen bier of badeend meenemen?',
-      a: 'Nee! De organisatie en Scouting Van Brederode verzorgen alle officiële wedstrijdbadeenden, biertafels, volle kratten en parcoursbenodigdheden. Er is tevens een ruime bar voor toeschouwers en dorstige atleten.',
+      a: 'Nee! De organisatie en Scouting Van Brederode verzorgen alle officiële wedstrijdbadeenden en benodigdheden voor de spellen. De bar in het clubgebouw is geopend voor een lekker drankje.',
     },
     {
       q: 'Wat kosten de inschrijvingen?',
-      a: 'Inschrijven is 100% gratis t/m 1 maart 2027. Wees er wel op tijd bij want er is een maximum aantal startplekken beschikbaar.',
+      a: 'Inschrijven is 100% gratis t/m 1 maart 2027. Er is geen maximum aantal teams, dus meld je gerust aan met al je vrienden, familie of collega’s!',
     },
     {
       q: 'Wat winnen we als we eerste worden?',
-      a: 'De felbegeerde Gouden Badeend Wisseltrofee, eeuwige roem in Papendrecht en omstreken, en een koud fust voor het hele team.',
+      a: 'Eeuwige roem in Papendrecht en omstreken, de officiële BADEENDLYMPICS 2027 titel en een welverdiende goudgele rakker voor het winnende team!',
     },
     {
       q: 'Zijn toeschouwers welkom?',
-      a: 'Zeker! Toegang voor supporters en toeschouwers is gratis. Er zijn tribunes, muziek, een buitenbar en volop spektakel.',
+      a: 'Zeker! Toegang voor supporters en toeschouwers is gratis. Er is volop muziek, sfeer en spektakel op het terrein.',
     },
   ];
 
@@ -98,10 +102,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
                 TEAMS
               </span>
               <h3 className="font-display font-black text-2xl uppercase tracking-tight text-black mb-2">
-                EXACT 4 LEDEN
+                EXACT 4 LEDEN (18+)
               </h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Minimaal 18 jaar. Elk team bestaat uit exact 4 strijders met één aangewezen aanvoerder. Teamkleding of badeend-thema sterk aangemoedigd!
+                Ieder teamlid moet 18+ zijn voor deelname. Elk team bestaat uit exact 4 strijders. Matchende teamkleding en badeend-outfits worden van harte aangemoedigd!
               </p>
             </div>
           </div>
@@ -116,10 +120,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
                 DE HOOFDPRIJS
               </span>
               <h3 className="font-display font-black text-2xl uppercase tracking-tight text-black mb-2">
-                DE GOUDEN BADEEND
+                GOUDGELE RAKKER
               </h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                De felbegeerde wisseltrofee, eeuwige lokale roem en een teamfeestpakket.
+                Eeuwige lokale roem, de officiële BADEENDLYMPICS titel en een welverdiende goudgele rakker voor het winnende team.
               </p>
             </div>
           </div>
@@ -130,22 +134,22 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
           <div className="flex items-center gap-3 mb-6">
             <Shield size={24} className="text-amber-500" />
             <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black">
-              DE KONINKLIJKE BADEEND ERECODE
+              DE OFFICIËLE BADEEND ERECODE
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm font-semibold text-slate-800">
             <div className="border-2 border-black bg-white p-5">
               <span className="font-display font-black text-amber-500 text-lg block mb-1">01. FAIR PLAY</span>
-              Geen stiekeme hulpmiddelen, geen lithium-aandrijving in de badeend en geen discussie met de scheidsrechter.
+              Geen stiekeme hulpmiddelen, geen lithium-aandrijving in de badeend en geen discussie met de jury.
             </div>
             <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">02. DRUPPEL-TOLERANTIE</span>
-              Gemorste vloeistof of verloren badeenden resulteren in onherroepelijke straftijd volgens de officiële wedstrijdleiding.
+              <span className="font-display font-black text-amber-500 text-lg block mb-1">02. TEAMKLEDING AANGEMOEDIGD</span>
+              Trek je meest epische matchende outfits, geelste teamshirts of badeend-kostuums aan. Teamkleding wordt maximaal toegejuicht!
             </div>
             <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">03. 5 GEHEIME SPELEN</span>
-              Alle 5 de mystery disciplines worden pas live op 3 april onthuld. Alle teamleden schikken zich sportief naar het lot!
+              <span className="font-display font-black text-amber-500 text-lg block mb-1">03. 5 DISCIPLINES</span>
+              De disciplines worden de komende tijd bekendgemaakt. Alle teamleden schikken zich sportief naar de beslissingen van de jury!
             </div>
           </div>
         </div>
@@ -176,6 +180,33 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
                 )}
               </div>
             ))}
+          </div>
+
+          {/* Vrijwillige Jury Banner */}
+          <div className="mt-12 bg-amber-400 border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 bg-black text-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <Scale size={24} />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-black/70 block mb-0.5">
+                  COMMISSIE & JURY
+                </span>
+                <h3 className="font-display font-black text-2xl uppercase tracking-tight text-black">
+                  AANMELDEN ALS VRIJWILLIGE JURY
+                </h3>
+                <p className="text-xs sm:text-sm font-semibold text-black/80 mt-1 max-w-md">
+                  Wil je als jurylid toezien op een eerlijk verloop van de spelen? Stuur een e-mail naar <strong className="text-black underline">Lotte@scoutingpapendrecht.nl</strong>.
+                </p>
+              </div>
+            </div>
+            <a
+              href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
+              className="px-6 py-3.5 bg-black text-white border-2 border-black font-display font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 hover:bg-slate-900 transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] shrink-0"
+            >
+              <Mail size={16} className="text-amber-400" />
+              E-MAIL LOTTE →
+            </a>
           </div>
         </div>
       </div>

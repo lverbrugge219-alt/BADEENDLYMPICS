@@ -58,8 +58,8 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavi
                   <div className="font-display font-black text-8xl text-amber-400 leading-none mb-4">
                     ?
                   </div>
-                  <span className="font-display font-black text-xl tracking-widest uppercase text-slate-300">
-                    STRIKT GEHEIM TOT 3 APRIL 2027
+                  <span className="font-display font-black text-lg sm:text-xl tracking-widest uppercase text-slate-300">
+                    DISCIPLINE WORDT BINNENKORT BEKENDGEMAAKT
                   </span>
                 </div>
               )}

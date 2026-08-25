@@ -8,15 +8,26 @@ import { SchedulePage } from './pages/SchedulePage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ParticipantsPage } from './pages/ParticipantsPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { LoginPage } from './pages/LoginPage';
+import { TeamPortalPage } from './pages/TeamPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { SportDetailPage } from './pages/SportDetailPage';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
+  const [loginInitialTab, setLoginInitialTab] = useState<'team' | 'organisatie'>('team');
 
   const handleNavigate = (route: PageRoute) => {
+    if (route === 'scorebeheer') {
+      // If user is trying to access scorebeheer directly from non-admin, LoginPage handles or AdminPage checks
+    }
     setCurrentPage(route);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateWithTab = (route: PageRoute, tab: 'team' | 'organisatie') => {
+    setLoginInitialTab(tab);
+    handleNavigate(route);
   };
 
   const getSpelIdFromRoute = (route: PageRoute): SpelId => {
@@ -31,7 +42,11 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-white text-black font-sans selection:bg-amber-400 selection:text-black">
       {/* Navigation Header */}
-      <Navbar currentPage={currentPage} onNavigate={handleNavigate} />
+      <Navbar
+        currentPage={currentPage}
+        onNavigate={handleNavigate}
+        onNavigateLoginWithTab={handleNavigateWithTab}
+      />
 
       {/* Main Content View */}
       <main className="flex-1">
@@ -46,6 +61,12 @@ export default function App() {
         {currentPage === 'deelnemers' && <ParticipantsPage onNavigate={handleNavigate} />}
 
         {currentPage === 'inschrijven' && <SignUpPage onNavigate={handleNavigate} />}
+
+        {currentPage === 'login' && (
+          <LoginPage onNavigate={handleNavigate} initialTab={loginInitialTab} />
+        )}
+
+        {currentPage === 'team-portal' && <TeamPortalPage onNavigate={handleNavigate} />}
 
         {currentPage === 'scorebeheer' && <AdminPage onNavigate={handleNavigate} />}
 

@@ -62,14 +62,14 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-amber-400 border border-black text-[11px] font-black uppercase tracking-widest text-black mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              <span>TOP SECRET ARCHIVE</span>
+              <span>OFFICIËLE DISCIPLINES</span>
             </div>
             <h2 className="font-display font-black text-5xl sm:text-6xl md:text-7xl uppercase leading-none tracking-tight text-black">
-              ALLE 5 SPELEN <span className="text-stroke-black">NOG GEHEIM</span>
+              5 DISCIPLINES <span className="text-stroke-black">BINNENKORT BEKEND</span>
             </h2>
           </div>
           <p className="text-sm sm:text-base text-slate-700 max-w-md font-medium">
-            De organisatie houdt alle vijf de disciplines strikt geheim tot de start op zaterdag 3 april 2027. Bereid je voor op snelheid, behendigheid, water en tactiek!
+            De disciplines worden de komende tijd bekendgemaakt door de organisatie. Ieder teamlid moet 18+ zijn. Trek jullie meest epische teamkleding aan en bereid je voor op eeuwige roem!
           </p>
         </div>
 
@@ -96,7 +96,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 NOG GEHEIM #01
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-1">
-                Eerste discipline • Onthulling ter plekke
+                Eerste discipline • Wordt de komende tijd bekendgemaakt
               </p>
             </div>
             <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
@@ -125,7 +125,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 NOG GEHEIM #02
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-1">
-                Tweede discipline • Teamcoördinatie & balans
+                Tweede discipline • Wordt de komende tijd bekendgemaakt
               </p>
             </div>
             <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
@@ -154,7 +154,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 NOG GEHEIM #03
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-1">
-                Derde discipline • Centrale krachtmeting
+                Derde discipline • Wordt de komende tijd bekendgemaakt
               </p>
             </div>
             <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
@@ -186,7 +186,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 NOG GEHEIM #04
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
-                Vierde discipline • Behendigheid & stalen zenuwen
+                Vierde discipline • Wordt de komende tijd bekendgemaakt
               </p>
             </div>
             <div className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
@@ -194,20 +194,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Spel 05 - Finale with Gold Accent */}
+          {/* Spel 05 */}
           <div
             onClick={() => onNavigate('spel-geheim-05')}
-            className="bg-black text-white border-2 border-amber-400 p-6 sm:p-8 group cursor-pointer shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] hover:shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px] relative overflow-hidden"
+            className="bg-black text-white border-2 border-black p-6 sm:p-8 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px]"
           >
-            <div className="absolute top-0 right-0 bg-amber-400 text-black font-display font-black text-[10px] tracking-widest uppercase px-3 py-1 border-b border-l border-black">
-              ★ FINALE • DUBBELE PUNTEN
-            </div>
-
             <div className="flex items-start justify-between">
               <span className="bg-amber-400 text-black px-2.5 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
                 SPEL 05
               </span>
-              <div className="w-9 h-9 bg-amber-400 border border-black flex items-center justify-center text-black group-hover:bg-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-9 h-9 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
                 <ArrowUpRight size={20} />
               </div>
             </div>
@@ -216,16 +212,37 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 ?
               </div>
               <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
-                NOG GEHEIM #05 (FINALE)
+                NOG GEHEIM #05
               </h3>
-              <p className="text-xs sm:text-sm text-amber-300/80 font-medium mt-1">
-                De ultieme slotclimax om de Gouden Badeend Wisseltrofee
+              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
+                Vijfde discipline • Wordt de komende tijd bekendgemaakt
               </p>
             </div>
-            <div className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 font-display">
-              <span>BEKIJK FINALE DETAILS</span> →
+            <div className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK DETAILS</span> →
             </div>
           </div>
+        </div>
+
+        {/* Teamkleding Motivation Box */}
+        <div className="mt-8 bg-slate-50 border-2 border-black p-6 sm:p-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-1">
+            <span className="text-amber-500 font-display font-black text-xs uppercase tracking-widest block">
+              DRESSCODE & TEAMSPIRIT
+            </span>
+            <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black">
+              TEAMKLEDING WORDT AANGEMOEDIGD!
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-700 font-medium max-w-2xl leading-relaxed">
+              Zorg dat jouw team van 4 opvalt! Matchende shirts, gele outfits, badeend-accessoires of complete themakostuums: hoe origineler, hoe meer respect van de jury en het publiek!
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate('inschrijven')}
+            className="px-6 py-3.5 bg-black text-white border-2 border-black font-display font-black text-xs sm:text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(250,204,21,1)] hover:bg-slate-900 shrink-0 cursor-pointer"
+          >
+            SCHRIJF TEAM IN →
+          </button>
         </div>
       </section>
 

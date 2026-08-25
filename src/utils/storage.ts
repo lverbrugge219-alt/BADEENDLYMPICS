@@ -1,8 +1,10 @@
 import { Team, ScoreEntry, SpelId } from '../types';
-import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN } from '../data/mockData';
+import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
 
-const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v3';
-const SCORES_STORAGE_KEY = 'badeendlympics_scores_v3';
+const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v4';
+const SCORES_STORAGE_KEY = 'badeendlympics_scores_v4';
+const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
+const TEAM_SESSION_KEY = 'badeendlympics_team_session';
 
 export function getStoredTeams(): Team[] {
   try {
@@ -11,7 +13,12 @@ export function getStoredTeams(): Team[] {
       localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(INITIAL_TEAMS));
       return INITIAL_TEAMS;
     }
-    return JSON.parse(raw);
+    const parsed: Team[] = JSON.parse(raw);
+    // Ensure all teams have valid data
+    return parsed.map((t) => ({
+      ...t,
+      password: t.password || 'Badeend2027',
+    }));
   } catch {
     return INITIAL_TEAMS;
   }
@@ -67,8 +74,9 @@ export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' |
     id: `team-${Date.now()}`,
     name: teamData.name.trim(),
     aanvoerder: teamData.aanvoerder.trim(),
-    email: teamData.email.trim(),
-    members: teamData.members.filter((m) => m.trim().length > 0),
+    email: teamData.email.trim().toLowerCase(),
+    password: teamData.password || 'Badeend2027',
+    members: teamData.members.map((m) => m.trim()).filter((m) => m.length > 0),
     registeredAt: new Date().toISOString(),
     scores: {
       'geheim-01': null,
@@ -84,6 +92,58 @@ export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' |
   localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(updatedTeams));
   window.dispatchEvent(new Event('badeendlympics_data_change'));
   return newTeam;
+}
+
+export function updateTeam(
+  teamId: string,
+  updatedData: Partial<Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>>
+): Team | null {
+  const currentTeams = getStoredTeams();
+  const index = currentTeams.findIndex((t) => t.id === teamId);
+  if (index === -1) return null;
+
+  const oldTeam = currentTeams[index];
+  const oldName = oldTeam.name;
+
+  const updatedTeam: Team = {
+    ...oldTeam,
+    name: updatedData.name ? updatedData.name.trim() : oldTeam.name,
+    aanvoerder: updatedData.aanvoerder ? updatedData.aanvoerder.trim() : oldTeam.aanvoerder,
+    email: updatedData.email ? updatedData.email.trim().toLowerCase() : oldTeam.email,
+    password: updatedData.password ? updatedData.password : oldTeam.password,
+    members: updatedData.members
+      ? updatedData.members.map((m) => m.trim()).filter(Boolean)
+      : oldTeam.members,
+  };
+
+  currentTeams[index] = updatedTeam;
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(currentTeams));
+
+  // If team name changed, update the name in scores
+  if (updatedData.name && updatedData.name.trim().toLowerCase() !== oldName.trim().toLowerCase()) {
+    const currentScores = getStoredScores();
+    const newName = updatedData.name.trim();
+    const updatedScores = currentScores.map((s) => {
+      if (s.teamId === teamId || s.teamName.trim().toLowerCase() === oldName.trim().toLowerCase()) {
+        return {
+          ...s,
+          teamId,
+          teamName: newName,
+        };
+      }
+      return s;
+    });
+    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
+  }
+
+  // Also update active session if this team is logged in
+  const activeTeam = getTeamSession();
+  if (activeTeam && activeTeam.id === teamId) {
+    setTeamSession(updatedTeam);
+  }
+
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+  return updatedTeam;
 }
 
 export function deleteTeam(teamId: string): void {
@@ -103,18 +163,30 @@ export function deleteTeam(teamId: string): void {
     localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
   }
 
+  // If this team was logged in, log them out
+  const activeTeam = getTeamSession();
+  if (activeTeam && activeTeam.id === teamId) {
+    setTeamSession(null);
+  }
+
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 }
 
 export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: number): ScoreEntry {
   const currentScores = getStoredScores();
+  const currentTeams = getStoredTeams();
+  const matchingTeam = currentTeams.find(
+    (t) => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()
+  );
+
   const spel = SPELEN.find((s) => s.id === spelId);
   const spelName = spel ? spel.name : spelId;
 
   // Check if score exists for this team & game
   const existingIndex = currentScores.findIndex(
     (s) =>
-      s.teamName.trim().toLowerCase() === teamName.trim().toLowerCase() &&
+      (s.teamName.trim().toLowerCase() === teamName.trim().toLowerCase() ||
+        (matchingTeam && s.teamId === matchingTeam.id)) &&
       s.spelId === spelId
   );
 
@@ -124,6 +196,8 @@ export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: numb
     const updated = [...currentScores];
     updated[existingIndex] = {
       ...updated[existingIndex],
+      teamId: matchingTeam ? matchingTeam.id : updated[existingIndex].teamId,
+      teamName: teamName.trim(),
       points,
       updatedAt: new Date().toISOString(),
     };
@@ -132,6 +206,7 @@ export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: numb
   } else {
     resultEntry = {
       id: `score-${Date.now()}`,
+      teamId: matchingTeam ? matchingTeam.id : undefined,
       teamName: teamName.trim(),
       spelId,
       spelName,
@@ -157,4 +232,59 @@ export function resetAllData(): void {
   localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(INITIAL_TEAMS));
   localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(INITIAL_SCORES));
   window.dispatchEvent(new Event('badeendlympics_data_change'));
+}
+
+// --- AUTH SESSIONS ---
+
+export function getAdminSession(): boolean {
+  try {
+    return localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function setAdminSession(loggedIn: boolean): void {
+  try {
+    if (loggedIn) {
+      localStorage.setItem(ADMIN_SESSION_KEY, 'true');
+    } else {
+      localStorage.removeItem(ADMIN_SESSION_KEY);
+    }
+    window.dispatchEvent(new Event('badeendlympics_auth_change'));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export function getTeamSession(): Team | null {
+  try {
+    const raw = localStorage.getItem(TEAM_SESSION_KEY);
+    if (!raw) return null;
+    const sessionTeam: Team = JSON.parse(raw);
+    // Refresh latest team data from storage
+    const all = getStoredTeams();
+    const fresh = all.find((t) => t.id === sessionTeam.id);
+    return fresh || sessionTeam;
+  } catch {
+    return null;
+  }
+}
+
+export function setTeamSession(team: Team | null): void {
+  try {
+    if (team) {
+      localStorage.setItem(TEAM_SESSION_KEY, JSON.stringify(team));
+    } else {
+      localStorage.removeItem(TEAM_SESSION_KEY);
+    }
+    window.dispatchEvent(new Event('badeendlympics_auth_change'));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export function logoutAll(): void {
+  setAdminSession(false);
+  setTeamSession(null);
 }

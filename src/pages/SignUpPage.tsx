@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
-import { saveTeam } from '../utils/storage';
-import { CheckCircle2, Users } from 'lucide-react';
+import { saveTeam, setTeamSession } from '../utils/storage';
+import { CheckCircle2, Users, Mail, ShieldAlert, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface SignUpPageProps {
@@ -12,9 +12,15 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [teamName, setTeamName] = useState('');
   const [captainName, setCaptainName] = useState('');
   const [captainEmail, setCaptainEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [members, setMembers] = useState<string[]>(['', '', '', '']);
 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   const [submittedTeam, setSubmittedTeam] = useState<{
+    id: string;
     name: string;
     email: string;
   } | null>(null);
@@ -36,23 +42,40 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
 
     if (!teamName.trim() || !captainName.trim() || !captainEmail.trim()) {
-      alert('Vul a.u.b. alle verplichte velden in.');
+      setErrorMessage('Vul a.u.b. alle verplichte velden in.');
+      return;
+    }
+
+    if (!password) {
+      setErrorMessage('Kies een wachtwoord voor jullie teamaccount.');
+      return;
+    }
+
+    if (password.length < 4) {
+      setErrorMessage('Het wachtwoord moet minimaal 4 tekens lang zijn.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('De wachtwoorden komen niet overeen.');
       return;
     }
 
     const filteredMembers = members.map((m) => m.trim()).filter(Boolean);
     if (filteredMembers.length !== 4) {
-      alert('Een team moet uit exact 4 deelnemers bestaan. Vul alle 4 de teamleden in.');
+      setErrorMessage('Een team moet uit exact 4 deelnemers bestaan. Vul alle 4 de teamleden in.');
       return;
     }
 
     // Save team to database / localStorage
-    saveTeam({
+    const newTeam = saveTeam({
       name: teamName.toUpperCase(),
       aanvoerder: captainName,
       email: captainEmail,
+      password: password,
       members: filteredMembers,
     });
 
@@ -68,9 +91,13 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     }
 
     setSubmittedTeam({
-      name: teamName.toUpperCase(),
-      email: captainEmail,
+      id: newTeam.id,
+      name: newTeam.name,
+      email: newTeam.email,
     });
+
+    // Automatically set team session so they can go to team portal directly
+    setTeamSession(newTeam);
 
     showToast('Team ingeschreven!');
   };
@@ -79,7 +106,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     setTeamName('');
     setCaptainName('');
     setCaptainEmail('');
+    setPassword('');
+    setConfirmPassword('');
     setMembers(['', '', '', '']);
+    setErrorMessage(null);
     setSubmittedTeam(null);
   };
 
@@ -87,16 +117,30 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     <div className="bg-white text-black min-h-screen">
       {/* 1. YELLOW HEADER SECTION */}
       <section className="bg-amber-400 border-b-2 border-black py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <span className="font-display font-black text-xs sm:text-sm tracking-widest uppercase block text-black mb-2">
-            INSCHRIJVEN
-          </span>
-          <h1 className="font-display font-black text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight uppercase leading-none mb-4 text-black">
-            MELD JE <span className="text-stroke-black">TEAM AAN</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-black font-semibold max-w-2xl">
-            Vijf spelen, één Gouden Badeend. Vul het formulier in en je team verschijnt direct op de deelnemerspagina.
-          </p>
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <span className="font-display font-black text-xs sm:text-sm tracking-widest uppercase block text-black mb-2">
+              INSCHRIJVEN
+            </span>
+            <h1 className="font-display font-black text-6xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight uppercase leading-none mb-4 text-black">
+              MELD JE <span className="text-stroke-black">TEAM AAN</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-black font-semibold max-w-2xl">
+              Vijf spelen, exact 4 strijders (18+), strijden om een welverdiende goudgele rakker en eeuwige roem. Kies direct een teamwachtwoord om later jullie gegevens en leden te kunnen beheren.
+            </p>
+          </div>
+
+          <div className="bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-black shrink-0">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+              Al ingeschreven?
+            </span>
+            <button
+              onClick={() => onNavigate('login')}
+              className="inline-flex items-center gap-1.5 font-display font-black text-xs uppercase tracking-wider text-black hover:text-sky-600 cursor-pointer"
+            >
+              <Lock size={14} /> INLOGGEN BIJ TEAMPORTAAL →
+            </button>
+          </div>
         </div>
       </section>
 
@@ -116,11 +160,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                   TEAM {submittedTeam.name} IS ERBIJ!
                 </h2>
 
-                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed mb-8 max-w-lg">
-                  Bevestiging gaat naar <strong className="text-black font-bold">{submittedTeam.email}</strong>. Tot 3 april 2027 – train die armen, poets dat dienblad.
+                <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed mb-6 max-w-lg">
+                  Bevestiging gaat naar <strong className="text-black font-bold">{submittedTeam.email}</strong>. Je kunt nu op elk gewenst moment inloggen om jullie teamnaam, contactgegevens of de 4 teamleden aan te passen.
                 </p>
 
                 <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => onNavigate('team-portal')}
+                    className="px-6 py-3.5 bg-amber-400 text-black border-2 border-black font-display font-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300 cursor-pointer flex items-center gap-2"
+                  >
+                    BEKIJK TEAMPORTAAL <ArrowRight size={16} />
+                  </button>
                   <button
                     onClick={() => onNavigate('deelnemers')}
                     className="px-6 py-3.5 bg-black text-white border-2 border-black font-display font-black text-sm uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-slate-900 cursor-pointer"
@@ -141,6 +191,14 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                 onSubmit={handleSubmit}
                 className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6"
               >
+                {/* Error Banner */}
+                {errorMessage && (
+                  <div className="p-4 bg-rose-50 border-2 border-rose-500 text-rose-800 text-xs font-bold flex items-start gap-2.5">
+                    <AlertCircle size={18} className="text-rose-600 shrink-0 mt-0.5" />
+                    <div>{errorMessage}</div>
+                  </div>
+                )}
+
                 <div>
                   <label className="block font-display font-black text-xs uppercase tracking-wider text-black mb-2">
                     TEAMNAAM *
@@ -148,10 +206,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                   <input
                     type="text"
                     required
-                    placeholder="bijv. DE TESTEENDEN"
+                    placeholder="bijv. DE KWAKELITEITEN"
                     value={teamName}
                     onChange={(e) => setTeamName(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none uppercase"
+                    className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none uppercase placeholder:normal-case"
                   />
                 </div>
 
@@ -163,7 +221,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     <input
                       type="text"
                       required
-                      placeholder="bijv. E2E Tester"
+                      placeholder="bijv. Kapitein Kwakkelmans"
                       value={captainName}
                       onChange={(e) => setCaptainName(e.target.value)}
                       className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none"
@@ -177,11 +235,63 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     <input
                       type="email"
                       required
-                      placeholder="e2e@test.nl"
+                      placeholder="kapitein.kwak@badeendmail.nl"
                       value={captainEmail}
                       onChange={(e) => setCaptainEmail(e.target.value)}
                       className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                {/* Team Password Setup */}
+                <div className="p-4 sm:p-5 bg-slate-50 border-2 border-black space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Lock size={16} className="text-amber-500" />
+                    <span className="font-display font-black text-xs uppercase tracking-wider text-black">
+                      TEAM INLOGWACHTWOORD MAKEN *
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                    Kies een wachtwoord voor jullie teamaccount. Hiermee kunnen jullie later inloggen om de teamnaam, contactgegevens en 4 teamleden te wijzigen.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 mb-1.5">
+                        Wachtwoord *
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          placeholder="Min. 4 tekens"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full px-4 py-2.5 pr-10 bg-white border-2 border-black text-xs sm:text-sm font-semibold text-black focus:outline-none"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-black cursor-pointer p-1"
+                        >
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 mb-1.5">
+                        Herhaal wachtwoord *
+                      </label>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        placeholder="Herhaal wachtwoord"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-white border-2 border-black text-xs sm:text-sm font-semibold text-black focus:outline-none"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -226,7 +336,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Right Column: "GOED OM TE WETEN" Black Card */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 space-y-6">
             <div className="bg-black text-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center text-amber-400">
@@ -243,7 +353,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     01
                   </span>
                   <p className="leading-relaxed">
-                    Teams bestaan uit <strong>exact 4 deelnemers</strong>. Teamnaam moet uniek zijn.
+                    Ieder teamlid moet <strong>18+ zijn voor deelname</strong>. Teams bestaan uit exact 4 deelnemers.
                   </p>
                 </div>
 
@@ -252,7 +362,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     02
                   </span>
                   <p className="leading-relaxed">
-                    Inschrijven is gratis en kan tot 1 maart 2027.
+                    Inschrijven is 100% gratis. Er is <strong>geen maximum aantal teams</strong>.
                   </p>
                 </div>
 
@@ -261,7 +371,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     03
                   </span>
                   <p className="leading-relaxed">
-                    Je aanvoerder ontvangt alle praktische info per e-mail.
+                    <strong>Teamkleding wordt sterk aangemoedigd!</strong> Trek jullie meest originele en opvallende outfits aan.
                   </p>
                 </div>
 
@@ -270,10 +380,52 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     04
                   </span>
                   <p className="leading-relaxed">
-                    Alle 5 de geheime spelen tellen mee – bereid je voor op alles.
+                    De disciplines worden de komende tijd bekendgemaakt. Met je teamwachtwoord kun je altijd wijzigingen doorgeven.
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Jury Sign Up Box */}
+            <div className="bg-amber-400 border-2 border-black p-6 sm:p-7 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
+              <div className="flex items-center gap-2.5 mb-3">
+                <div className="w-8 h-8 bg-black text-amber-400 border border-black flex items-center justify-center font-black">
+                  <ShieldAlert size={18} />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-black/70 block">
+                    VRIJWILLIGERS GEZOCHT
+                  </span>
+                  <h3 className="font-display font-black text-xl uppercase tracking-tight text-black leading-none">
+                    JURY WORDEN?
+                  </h3>
+                </div>
+              </div>
+
+              <p className="text-xs font-semibold text-black/90 leading-relaxed mb-4">
+                Wil je niet deelnemen met een team, maar wel onderdeel zijn van de legendarische BADEENDLYMPICS? Meld je aan als vrijwillig jurylid!
+              </p>
+
+              <div className="bg-white border-2 border-black p-3.5 mb-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                  Aanmelden via e-mail:
+                </span>
+                <a
+                  href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
+                  className="font-display font-black text-sm sm:text-base text-sky-600 hover:text-sky-800 break-all flex items-center gap-1.5 transition-colors"
+                >
+                  <Mail size={16} className="shrink-0 text-black" />
+                  <span>Lotte@scoutingpapendrecht.nl</span>
+                </a>
+              </div>
+
+              <a
+                href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
+                className="w-full py-3 bg-black text-white border-2 border-black font-display font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              >
+                <Mail size={14} className="text-amber-400" />
+                STUUR E-MAIL NAAR LOTTE →
+              </a>
             </div>
           </div>
         </div>
