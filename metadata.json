@@ -1,0 +1,6 @@
+{
+  "name": "BADEENDLYMPICS",
+  "description": "Official championship portal for BADEENDLYMPICS, featuring event countdown, 5 duck sports showcases, live schedules, interactive leaderboards, team profiles, and team sign-up.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
