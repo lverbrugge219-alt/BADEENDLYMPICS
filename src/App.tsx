@@ -20,12 +20,12 @@ export default function App() {
   };
 
   const getSpelIdFromRoute = (route: PageRoute): SpelId => {
-    if (route === 'spel-biertafel-opzetten') return 'biertafel-opzetten';
-    if (route === 'spel-dienblad-parcours') return 'dienblad-parcours';
-    if (route === 'spel-kratbier-hindernisbaan') return 'kratbier-hindernisbaan';
     if (route === 'spel-geheim-01') return 'geheim-01';
     if (route === 'spel-geheim-02') return 'geheim-02';
-    return 'kratbier-hindernisbaan';
+    if (route === 'spel-geheim-03') return 'geheim-03';
+    if (route === 'spel-geheim-04') return 'geheim-04';
+    if (route === 'spel-geheim-05') return 'geheim-05';
+    return 'geheim-01';
   };
 
   return (

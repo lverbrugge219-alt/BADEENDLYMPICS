@@ -1,9 +1,9 @@
 export type SpelId =
-  | 'biertafel-opzetten'
-  | 'dienblad-parcours'
-  | 'kratbier-hindernisbaan'
   | 'geheim-01'
-  | 'geheim-02';
+  | 'geheim-02'
+  | 'geheim-03'
+  | 'geheim-04'
+  | 'geheim-05';
 
 export interface SpelInfo {
   id: SpelId;
@@ -46,11 +46,11 @@ export type PageRoute =
   | 'deelnemers'
   | 'inschrijven'
   | 'scorebeheer'
-  | 'spel-biertafel-opzetten'
-  | 'spel-dienblad-parcours'
-  | 'spel-kratbier-hindernisbaan'
   | 'spel-geheim-01'
-  | 'spel-geheim-02';
+  | 'spel-geheim-02'
+  | 'spel-geheim-03'
+  | 'spel-geheim-04'
+  | 'spel-geheim-05';
 
 export interface ScheduleItem {
   time: string;

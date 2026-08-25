@@ -2,7 +2,7 @@ import React from 'react';
 import { PageRoute } from '../types';
 import { SPELEN } from '../data/mockData';
 import { MarqueeTicker } from '../components/MarqueeTicker';
-import { BADEEND_LOGO_SRC } from '../assets/logo';
+import { CountdownTimer } from '../components/CountdownTimer';
 import { ArrowUpRight } from 'lucide-react';
 
 interface HomePageProps {
@@ -46,26 +46,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Right Hero Yellow Block with Duck Mascot Card */}
-          <div className="lg:col-span-5 bg-amber-400 border-t-2 lg:border-t-0 lg:border-l-2 border-black p-8 sm:p-12 flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="relative">
-              {/* Photo Frame */}
-              <div className="bg-white border-2 border-black p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-xs sm:max-w-sm">
-                <div className="w-56 h-56 sm:w-64 sm:h-64 bg-white flex items-center justify-center overflow-hidden border border-slate-200 p-2">
-                  <img
-                    src={BADEEND_LOGO_SRC}
-                    alt="Officiële Badeendlympics Mascotte Logo"
-                    className="w-full h-full object-contain object-center transition-transform duration-300 hover:scale-105"
-                  />
-                </div>
-                {/* Badge attached to bottom of frame */}
-                <div className="mt-3 text-center">
-                  <span className="inline-block bg-sky-400 text-black border-2 border-black font-display font-black text-xs sm:text-sm uppercase tracking-wider px-3 py-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                    OFFICIEEL LOGO & MASCOTTE
-                  </span>
-                </div>
-              </div>
-            </div>
+          {/* Right Hero Yellow Block with Countdown Timer */}
+          <div className="lg:col-span-5 bg-amber-400 border-t-2 lg:border-t-0 lg:border-l-2 border-black p-6 sm:p-10 lg:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+            <CountdownTimer onExploreClick={() => onNavigate('schema')} />
           </div>
         </div>
       </section>
@@ -73,157 +56,174 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       {/* 2. RUNNING MARQUEE TICKER */}
       <MarqueeTicker text="BADEENDLYMPICS 2027 • 3 APRIL • PAPENDRECHT • GLORIE WACHT • " variant="yellow" />
 
-      {/* 3. "KIES JE SLAGVELD" (THE 5 SPELEN) */}
+      {/* 3. "DE VIJF GEHEIME SPELEN" */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <span className="text-sky-500 font-display font-black text-xs sm:text-sm tracking-widest uppercase block mb-2">
-              DE VIJF SPELEN
-            </span>
-            <h2 className="font-display font-black text-5xl sm:text-6xl md:text-7xl uppercase leading-none tracking-tight">
-              KIES JE <span className="text-stroke-black">SLAGVELD</span>
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-amber-400 border border-black text-[11px] font-black uppercase tracking-widest text-black mb-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <span>TOP SECRET ARCHIVE</span>
+            </div>
+            <h2 className="font-display font-black text-5xl sm:text-6xl md:text-7xl uppercase leading-none tracking-tight text-black">
+              ALLE 5 SPELEN <span className="text-stroke-black">NOG GEHEIM</span>
             </h2>
           </div>
-          <p className="text-sm text-slate-600 max-w-sm font-medium">
-            Drie bekende disciplines, twee mysteries. Alle vijf tellen mee voor het eindklassement.
+          <p className="text-sm sm:text-base text-slate-700 max-w-md font-medium">
+            De organisatie houdt alle vijf de disciplines strikt geheim tot de start op zaterdag 3 april 2027. Bereid je voor op snelheid, behendigheid, water en tactiek!
           </p>
         </div>
 
-        {/* 5 Spelen Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          {/* Spel 01 - Large Card */}
-          <div
-            onClick={() => onNavigate('spel-biertafel-opzetten')}
-            className="md:col-span-7 bg-white border-2 border-black p-4 sm:p-6 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between"
-          >
-            <div className="w-full h-56 sm:h-72 bg-slate-100 border-2 border-black overflow-hidden mb-5">
-              <img
-                src={SPELEN[0].imageUrl}
-                alt="Biertafel opzetten"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <span className="text-sky-500 font-display font-black text-xs tracking-widest uppercase block mb-1">
-                  SPEL 01
-                </span>
-                <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black">
-                  {SPELEN[0].name}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
-                  {SPELEN[0].subtitle}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:bg-amber-300 transition-all">
-                <ArrowUpRight size={20} className="text-black" />
-              </div>
-            </div>
-          </div>
-
-          {/* Spel 02 & 03 - Right Column */}
-          <div className="md:col-span-5 flex flex-col gap-6">
-            {/* Spel 02 */}
-            <div
-              onClick={() => onNavigate('spel-dienblad-parcours')}
-              className="bg-white border-2 border-black p-4 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between flex-1"
-            >
-              <div className="w-full h-36 sm:h-40 bg-slate-100 border-2 border-black overflow-hidden mb-3">
-                <img
-                  src={SPELEN[1].imageUrl}
-                  alt="Dienblad parcours"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-sky-500 font-display font-black text-[11px] tracking-widest uppercase block mb-0.5">
-                    SPEL 02
-                  </span>
-                  <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-black">
-                    {SPELEN[1].name}
-                  </h3>
-                  <p className="text-xs text-slate-600 font-medium">{SPELEN[1].subtitle}</p>
-                </div>
-                <div className="w-8 h-8 bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:bg-amber-300">
-                  <ArrowUpRight size={16} className="text-black" />
-                </div>
-              </div>
-            </div>
-
-            {/* Spel 03 */}
-            <div
-              onClick={() => onNavigate('spel-kratbier-hindernisbaan')}
-              className="bg-white border-2 border-black p-4 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all flex flex-col justify-between flex-1"
-            >
-              <div className="w-full h-36 sm:h-40 bg-slate-100 border-2 border-black overflow-hidden mb-3">
-                <img
-                  src={SPELEN[2].imageUrl}
-                  alt="Kratbier hindernisbaan"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <span className="text-sky-500 font-display font-black text-[11px] tracking-widest uppercase block mb-0.5">
-                    SPEL 03
-                  </span>
-                  <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-black">
-                    {SPELEN[2].name}
-                  </h3>
-                  <p className="text-xs text-slate-600 font-medium">{SPELEN[2].subtitle}</p>
-                </div>
-                <div className="w-8 h-8 bg-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] group-hover:bg-amber-300">
-                  <ArrowUpRight size={16} className="text-black" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Spel 04 - Mystery Black Card */}
+        {/* 5 Secret Games Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          {/* Spel 01 */}
           <div
             onClick={() => onNavigate('spel-geheim-01')}
-            className="md:col-span-6 bg-black border-2 border-black text-white p-6 sm:p-8 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[220px]"
+            className="bg-black text-white border-2 border-black p-6 sm:p-7 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px]"
           >
             <div className="flex items-start justify-between">
-              <span className="text-slate-400 font-display font-black text-xs tracking-widest uppercase">
-                SPEL 04
+              <span className="bg-amber-400 text-black px-2 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
+                SPEL 01
               </span>
-              <div className="text-slate-400 group-hover:text-amber-400 transition-colors">
-                <ArrowUpRight size={20} />
+              <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
+                <ArrowUpRight size={18} />
               </div>
             </div>
-            <div className="my-4">
+            <div className="my-6">
               <div className="font-display font-black text-6xl text-amber-400 leading-none mb-2">
                 ?
               </div>
-              <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white">
+              <h3 className="font-display font-black text-2xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
                 NOG GEHEIM #01
               </h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">
+                Eerste discipline • Onthulling ter plekke
+              </p>
+            </div>
+            <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK DETAILS</span> →
             </div>
           </div>
 
-          {/* Spel 05 - Mystery Black Card */}
+          {/* Spel 02 */}
           <div
             onClick={() => onNavigate('spel-geheim-02')}
-            className="md:col-span-6 bg-black border-2 border-black text-white p-6 sm:p-8 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[220px]"
+            className="bg-black text-white border-2 border-black p-6 sm:p-7 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px]"
           >
             <div className="flex items-start justify-between">
-              <span className="text-slate-400 font-display font-black text-xs tracking-widest uppercase">
-                SPEL 05
+              <span className="bg-amber-400 text-black px-2 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
+                SPEL 02
               </span>
-              <div className="text-slate-400 group-hover:text-amber-400 transition-colors">
-                <ArrowUpRight size={20} />
+              <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
+                <ArrowUpRight size={18} />
               </div>
             </div>
-            <div className="my-4">
+            <div className="my-6">
               <div className="font-display font-black text-6xl text-amber-400 leading-none mb-2">
                 ?
               </div>
-              <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white">
+              <h3 className="font-display font-black text-2xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
                 NOG GEHEIM #02
               </h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">
+                Tweede discipline • Teamcoördinatie & balans
+              </p>
+            </div>
+            <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK DETAILS</span> →
+            </div>
+          </div>
+
+          {/* Spel 03 */}
+          <div
+            onClick={() => onNavigate('spel-geheim-03')}
+            className="bg-black text-white border-2 border-black p-6 sm:p-7 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px] md:col-span-2 lg:col-span-1"
+          >
+            <div className="flex items-start justify-between">
+              <span className="bg-amber-400 text-black px-2 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
+                SPEL 03
+              </span>
+              <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
+                <ArrowUpRight size={18} />
+              </div>
+            </div>
+            <div className="my-6">
+              <div className="font-display font-black text-6xl text-amber-400 leading-none mb-2">
+                ?
+              </div>
+              <h3 className="font-display font-black text-2xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
+                NOG GEHEIM #03
+              </h3>
+              <p className="text-xs text-slate-400 font-medium mt-1">
+                Derde discipline • Centrale krachtmeting
+              </p>
+            </div>
+            <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK DETAILS</span> →
+            </div>
+          </div>
+        </div>
+
+        {/* Row 2: Spel 04 & 05 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Spel 04 */}
+          <div
+            onClick={() => onNavigate('spel-geheim-04')}
+            className="bg-black text-white border-2 border-black p-6 sm:p-8 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px]"
+          >
+            <div className="flex items-start justify-between">
+              <span className="bg-amber-400 text-black px-2.5 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
+                SPEL 04
+              </span>
+              <div className="w-9 h-9 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
+                <ArrowUpRight size={20} />
+              </div>
+            </div>
+            <div className="my-6">
+              <div className="font-display font-black text-6xl sm:text-7xl text-amber-400 leading-none mb-2">
+                ?
+              </div>
+              <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
+                NOG GEHEIM #04
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium mt-1">
+                Vierde discipline • Behendigheid & stalen zenuwen
+              </p>
+            </div>
+            <div className="text-xs font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK DETAILS</span> →
+            </div>
+          </div>
+
+          {/* Spel 05 - Finale with Gold Accent */}
+          <div
+            onClick={() => onNavigate('spel-geheim-05')}
+            className="bg-black text-white border-2 border-amber-400 p-6 sm:p-8 group cursor-pointer shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] hover:shadow-[8px_8px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px] relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 bg-amber-400 text-black font-display font-black text-[10px] tracking-widest uppercase px-3 py-1 border-b border-l border-black">
+              ★ FINALE • DUBBELE PUNTEN
+            </div>
+
+            <div className="flex items-start justify-between">
+              <span className="bg-amber-400 text-black px-2.5 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
+                SPEL 05
+              </span>
+              <div className="w-9 h-9 bg-amber-400 border border-black flex items-center justify-center text-black group-hover:bg-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <ArrowUpRight size={20} />
+              </div>
+            </div>
+            <div className="my-6">
+              <div className="font-display font-black text-6xl sm:text-7xl text-amber-400 leading-none mb-2">
+                ?
+              </div>
+              <h3 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
+                NOG GEHEIM #05 (FINALE)
+              </h3>
+              <p className="text-xs sm:text-sm text-amber-300/80 font-medium mt-1">
+                De ultieme slotclimax om de Gouden Badeend Wisseltrofee
+              </p>
+            </div>
+            <div className="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK FINALE DETAILS</span> →
             </div>
           </div>
         </div>

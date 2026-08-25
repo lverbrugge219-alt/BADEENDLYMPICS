@@ -36,33 +36,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Col 2: Spelen */}
           <div className="md:col-span-3">
             <h4 className="font-display text-xs font-black uppercase tracking-widest text-slate-300 mb-4">
-              SPELEN
+              5 GEHEIME SPELEN
             </h4>
             <ul className="space-y-2.5 text-xs font-semibold">
-              <li>
-                <button
-                  onClick={() => onNavigate('spel-biertafel-opzetten')}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Biertafel Opzetten
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('spel-dienblad-parcours')}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Dienblad Parcours
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('spel-kratbier-hindernisbaan')}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
-                >
-                  Kratbier Hindernisbaan
-                </button>
-              </li>
               <li>
                 <button
                   onClick={() => onNavigate('spel-geheim-01')}
@@ -77,6 +53,30 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
                   Nog Geheim #02
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-geheim-03')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Nog Geheim #03
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-geheim-04')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Nog Geheim #04
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-geheim-05')}
+                  className="text-amber-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Nog Geheim #05
                 </button>
               </li>
             </ul>

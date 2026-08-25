@@ -78,11 +78,11 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onNavigate }) 
               <tr className="bg-black text-white text-[11px] sm:text-xs font-display font-black uppercase tracking-wider border-b-2 border-black">
                 <th className="py-3.5 px-4 w-12 text-center">#</th>
                 <th className="py-3.5 px-4">TEAM</th>
-                <th className="py-3.5 px-4 text-center">BIERTAFEL OPZETTEN</th>
-                <th className="py-3.5 px-4 text-center">DIENBLAD PARCOURS</th>
-                <th className="py-3.5 px-4 text-center">KRATBIER HINDERNISBAAN</th>
                 <th className="py-3.5 px-4 text-center">GEHEIM SPEL 1</th>
                 <th className="py-3.5 px-4 text-center">GEHEIM SPEL 2</th>
+                <th className="py-3.5 px-4 text-center">GEHEIM SPEL 3</th>
+                <th className="py-3.5 px-4 text-center">GEHEIM SPEL 4</th>
+                <th className="py-3.5 px-4 text-center">GEHEIM SPEL 5</th>
                 <th className="py-3.5 px-4 text-center font-black">TOTAAL</th>
               </tr>
             </thead>
@@ -103,19 +103,19 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onNavigate }) 
                       {team.name}
                     </td>
                     <td className="py-4 px-4 text-center font-semibold text-slate-700">
-                      {team.scores?.['biertafel-opzetten'] ?? '—'}
-                    </td>
-                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
-                      {team.scores?.['dienblad-parcours'] ?? '—'}
-                    </td>
-                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
-                      {team.scores?.['kratbier-hindernisbaan'] ?? '—'}
-                    </td>
-                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
                       {team.scores?.['geheim-01'] ?? '—'}
                     </td>
                     <td className="py-4 px-4 text-center font-semibold text-slate-700">
                       {team.scores?.['geheim-02'] ?? '—'}
+                    </td>
+                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
+                      {team.scores?.['geheim-03'] ?? '—'}
+                    </td>
+                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
+                      {team.scores?.['geheim-04'] ?? '—'}
+                    </td>
+                    <td className="py-4 px-4 text-center font-semibold text-slate-700">
+                      {team.scores?.['geheim-05'] ?? '—'}
                     </td>
                     <td className="py-4 px-4 text-center font-display font-black text-lg text-amber-500">
                       {team.totaal || 0}

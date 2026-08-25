@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
 import { saveTeam } from '../utils/storage';
-import { CheckCircle2, Users, Plus, X } from 'lucide-react';
+import { CheckCircle2, Users } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface SignUpPageProps {
@@ -12,7 +12,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [teamName, setTeamName] = useState('');
   const [captainName, setCaptainName] = useState('');
   const [captainEmail, setCaptainEmail] = useState('');
-  const [members, setMembers] = useState<string[]>(['', '', '']);
+  const [members, setMembers] = useState<string[]>(['', '', '', '']);
 
   const [submittedTeam, setSubmittedTeam] = useState<{
     name: string;
@@ -34,18 +34,6 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     setMembers(next);
   };
 
-  const handleAddMember = () => {
-    if (members.length < 6) {
-      setMembers([...members, '']);
-    }
-  };
-
-  const handleRemoveMember = (index: number) => {
-    if (members.length > 2) {
-      setMembers(members.filter((_, i) => i !== index));
-    }
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,8 +43,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     }
 
     const filteredMembers = members.map((m) => m.trim()).filter(Boolean);
-    if (filteredMembers.length < 2) {
-      alert('Een team moet minimaal 2 teamleden hebben.');
+    if (filteredMembers.length !== 4) {
+      alert('Een team moet uit exact 4 deelnemers bestaan. Vul alle 4 de teamleden in.');
       return;
     }
 
@@ -91,7 +79,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     setTeamName('');
     setCaptainName('');
     setCaptainEmail('');
-    setMembers(['', '', '']);
+    setMembers(['', '', '', '']);
     setSubmittedTeam(null);
   };
 
@@ -197,21 +185,15 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
-                {/* Team Members List */}
+                {/* Team Members List (Exact 4) */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="font-display font-black text-xs uppercase tracking-wider text-black">
-                      TEAMLEDEN (2 TOT 6 LEDEN)
+                      TEAMLEDEN (EXACT 4 DEELNEMERS) *
                     </label>
-                    {members.length < 6 && (
-                      <button
-                        type="button"
-                        onClick={handleAddMember}
-                        className="inline-flex items-center gap-1 text-xs font-black font-display text-sky-600 hover:text-sky-700 uppercase cursor-pointer"
-                      >
-                        <Plus size={14} /> LID TOEVOEGEN
-                      </button>
-                    )}
+                    <span className="text-[11px] font-black text-amber-600 bg-amber-100 border border-amber-300 px-2 py-0.5 uppercase tracking-wider">
+                      4 SPELERS VEREIST
+                    </span>
                   </div>
 
                   <div className="space-y-2.5">
@@ -222,22 +204,12 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                         </div>
                         <input
                           type="text"
-                          required={idx < 2}
-                          placeholder={idx === 0 ? 'Naam teamlid 1' : idx === 1 ? 'Naam teamlid 2' : `Naam teamlid ${idx + 1} (optioneel)`}
+                          required
+                          placeholder={`Volledige naam teamlid ${idx + 1}`}
                           value={member}
                           onChange={(e) => handleMemberChange(idx, e.target.value)}
-                          className="flex-1 px-4 py-2.5 bg-white border-2 border-black text-xs sm:text-sm font-semibold text-black focus:outline-none"
+                          className="flex-1 px-4 py-2.5 bg-white border-2 border-black text-xs sm:text-sm font-semibold text-black focus:outline-none placeholder:text-slate-400"
                         />
-                        {members.length > 2 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveMember(idx)}
-                            className="p-2 border-2 border-black hover:bg-rose-50 text-slate-500 hover:text-rose-600 cursor-pointer"
-                            title="Lid verwijderen"
-                          >
-                            <X size={16} />
-                          </button>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -247,7 +219,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                   type="submit"
                   className="w-full py-4 bg-amber-400 border-2 border-black font-display font-black text-base uppercase tracking-wider text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all cursor-pointer"
                 >
-                  MELD TEAM AAN →
+                  MELD TEAM AAN (4 LEDEN) →
                 </button>
               </form>
             )}
@@ -271,7 +243,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     01
                   </span>
                   <p className="leading-relaxed">
-                    Teams van 2 tot 6 personen. Teamnaam moet uniek zijn.
+                    Teams bestaan uit <strong>exact 4 deelnemers</strong>. Teamnaam moet uniek zijn.
                   </p>
                 </div>
 
@@ -298,7 +270,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     04
                   </span>
                   <p className="leading-relaxed">
-                    De twee geheime spelen tellen ook mee – bereid je voor op alles.
+                    Alle 5 de geheime spelen tellen mee – bereid je voor op alles.
                   </p>
                 </div>
               </div>

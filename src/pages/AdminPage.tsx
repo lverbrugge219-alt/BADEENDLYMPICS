@@ -21,7 +21,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
   // Form states
   const [selectedTeamName, setSelectedTeamName] = useState('');
-  const [selectedSpelId, setSelectedSpelId] = useState<SpelId>('biertafel-opzetten');
+  const [selectedSpelId, setSelectedSpelId] = useState<SpelId>('geheim-01');
   const [pointsInput, setPointsInput] = useState<number | ''>('');
 
   // Toast message state

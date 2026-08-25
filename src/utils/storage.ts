@@ -1,8 +1,8 @@
 import { Team, ScoreEntry, SpelId } from '../types';
 import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN } from '../data/mockData';
 
-const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v1';
-const SCORES_STORAGE_KEY = 'badeendlympics_scores_v1';
+const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v3';
+const SCORES_STORAGE_KEY = 'badeendlympics_scores_v3';
 
 export function getStoredTeams(): Team[] {
   try {
@@ -33,11 +33,11 @@ export function getStoredScores(): ScoreEntry[] {
 export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team[] {
   return teams.map((team) => {
     const teamScores: Record<string, number | null> = {
-      'biertafel-opzetten': null,
-      'dienblad-parcours': null,
-      'kratbier-hindernisbaan': null,
       'geheim-01': null,
       'geheim-02': null,
+      'geheim-03': null,
+      'geheim-04': null,
+      'geheim-05': null,
     };
 
     let totaal = 0;
@@ -62,7 +62,6 @@ export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team
 
 export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>): Team {
   const currentTeams = getStoredTeams();
-  const currentScores = getStoredScores();
 
   const newTeam: Team = {
     id: `team-${Date.now()}`,
@@ -72,11 +71,11 @@ export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' |
     members: teamData.members.filter((m) => m.trim().length > 0),
     registeredAt: new Date().toISOString(),
     scores: {
-      'biertafel-opzetten': null,
-      'dienblad-parcours': null,
-      'kratbier-hindernisbaan': null,
       'geheim-01': null,
       'geheim-02': null,
+      'geheim-03': null,
+      'geheim-04': null,
+      'geheim-05': null,
     },
     totaal: 0,
   };

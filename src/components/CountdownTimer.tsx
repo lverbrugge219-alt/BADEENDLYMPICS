@@ -1,37 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, Clock, Sparkles, Volume2 } from 'lucide-react';
+import { Clock, Calendar, Volume2, Sparkles } from 'lucide-react';
 import { playDuckQuack, playWhistle } from '../utils/audio';
+import { BADEEND_LOGO_SRC } from '../assets/logo';
 
 interface CountdownTimerProps {
-  onExploreClick?: () => void;
   className?: string;
+  onExploreClick?: () => void;
 }
 
-export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onExploreClick, className = '' }) => {
-  // Target: Badeendlympics 2026 Opening Ceremony (Aug 28, 2026, 10:00:00 CEST)
-  const targetDate = new Date('2026-08-28T10:00:00');
+export const CountdownTimer: React.FC<CountdownTimerProps> = ({ className = '' }) => {
+  // Target: Badeendlympics 2027 (3 April 2027, 13:00:00 CEST)
+  const targetDate = new Date('2027-04-03T13:00:00').getTime();
 
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
     minutes: 0,
     seconds: 0,
-    isExpired: false
+    isExpired: false,
   });
-
-  const [selectedMilestone, setSelectedMilestone] = useState<'opening' | 'sprint' | 'final'>('opening');
 
   useEffect(() => {
     const calculateTime = () => {
-      let target = new Date('2026-08-28T10:00:00').getTime();
-      if (selectedMilestone === 'sprint') {
-        target = new Date('2026-08-28T12:30:00').getTime();
-      } else if (selectedMilestone === 'final') {
-        target = new Date('2026-08-30T16:00:00').getTime();
-      }
-
       const now = new Date().getTime();
-      const diff = target - now;
+      const diff = targetDate - now;
 
       if (diff <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
@@ -49,122 +41,92 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ onExploreClick, 
     calculateTime();
     const interval = setInterval(calculateTime, 1000);
     return () => clearInterval(interval);
-  }, [selectedMilestone]);
-
-  const milestones = [
-    { id: 'opening', label: 'Grand Opening', date: 'Aug 28, 10:00' },
-    { id: 'sprint', label: 'First Sprint Heat', date: 'Aug 28, 12:30' },
-    { id: 'final', label: 'Grand Finals', date: 'Aug 30, 16:00' }
-  ];
+  }, [targetDate]);
 
   return (
     <div
       id="badeendlympics-countdown"
-      className={`relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm ${className}`}
+      className={`bg-white border-2 border-black p-5 sm:p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-md ${className}`}
     >
-      {/* Subtle background glow */}
-      <div className="pointer-events-none absolute top-0 right-0 p-8">
-        <div className="w-48 h-48 bg-amber-100 rounded-full blur-3xl opacity-50" />
-      </div>
-
-      {/* Header bar */}
-      <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-400 text-black shadow-xs font-bold">
-            <Clock className="h-5 w-5" />
+      {/* Header bar with Mascot mini logo & live pulse */}
+      <div className="flex items-center justify-between border-b-2 border-black pb-3.5 mb-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-amber-400 border-2 border-black flex items-center justify-center p-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <img
+              src={BADEEND_LOGO_SRC}
+              alt="Mascotte Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-black bg-amber-400 px-2.5 py-0.5 rounded-full">
-                OFFICIAL COUNTDOWN
-              </span>
-              <span className="inline-flex items-center gap-1 text-[10px] text-sky-700 font-bold uppercase tracking-wider bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
-                Live Sync
-              </span>
+            <div className="text-[10px] font-black uppercase tracking-widest text-sky-600">
+              OFFICIËLE AFTELKLOK
             </div>
-            <h3 className="text-lg sm:text-xl font-black italic uppercase tracking-tight text-slate-950 mt-1">
-              BADEENDLY<span className="text-amber-500">MPICS</span> 2026
-            </h3>
+            <div className="font-display font-black text-sm uppercase tracking-tight text-black leading-none">
+              BADEENDLYMPICS 2027
+            </div>
           </div>
         </div>
 
-        {/* Milestone Selector */}
-        <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold uppercase tracking-wider">
-          {milestones.map((m) => (
-            <button
-              key={m.id}
-              id={`milestone-btn-${m.id}`}
-              onClick={() => {
-                setSelectedMilestone(m.id as 'opening' | 'sprint' | 'final');
-                playDuckQuack(1.1);
-              }}
-              className={`px-3 py-1.5 rounded-lg transition-all ${
-                selectedMilestone === m.id
-                  ? 'bg-black text-white font-black shadow-xs'
-                  : 'text-slate-500 hover:text-slate-950'
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 border border-black text-[10px] font-black uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <span className="w-2 h-2 rounded-full bg-red-600 animate-ping" />
+          <span>LIVE</span>
         </div>
       </div>
 
       {/* Digits Grid */}
-      <div className="relative my-6 grid grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4">
         {[
-          { label: 'DAYS', value: timeLeft.days },
-          { label: 'HRS', value: timeLeft.hours },
+          { label: 'DAGEN', value: timeLeft.days },
+          { label: 'UREN', value: timeLeft.hours },
           { label: 'MIN', value: timeLeft.minutes },
-          { label: 'SEC', value: timeLeft.seconds }
+          { label: 'SEC', value: timeLeft.seconds },
         ].map((unit, idx) => (
           <div
             key={idx}
-            className="group relative flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5 text-center transition-all hover:border-amber-400 hover:bg-white hover:shadow-md"
+            className="flex flex-col items-center justify-center border-2 border-black bg-slate-50 p-2.5 sm:p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-100 transition-colors"
           >
-            <div className="relative font-mono text-3xl sm:text-4xl md:text-5xl font-black italic text-slate-950 tracking-tight leading-none">
+            <div className="font-display font-black text-2xl sm:text-3xl md:text-4xl text-black tracking-tight leading-none">
               {String(unit.value).padStart(2, '0')}
             </div>
-            <div className="mt-2 text-[10px] sm:text-xs font-black tracking-widest text-slate-400 uppercase">
+            <div className="mt-1 text-[9px] sm:text-[10px] font-black tracking-widest text-slate-600 uppercase">
               {unit.label}
             </div>
           </div>
         ))}
       </div>
 
-      {/* Footer ticker with quack & referee actions */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600 border-t border-slate-100 pt-4">
-        <div className="flex items-center gap-2 text-slate-600 font-medium">
-          <Calendar className="h-4 w-4 text-amber-500" />
-          <span>AquaPark Olympic Flume, Utrecht • Aug 28–30, 2026</span>
+      {/* Event Date & Location Info */}
+      <div className="bg-slate-100 border border-black p-2.5 flex items-center justify-between gap-2 text-xs font-bold text-slate-800 mb-4">
+        <div className="flex items-center gap-1.5 text-[11px] truncate">
+          <Calendar size={13} className="text-amber-500 shrink-0" />
+          <span className="truncate">Zaterdag 3 april 2027 • 13:00 uur</span>
         </div>
+        <span className="text-[10px] font-black text-sky-600 uppercase shrink-0">
+          Papendrecht
+        </span>
+      </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            id="quack-cheer-btn"
-            onClick={() => {
-              playDuckQuack(1.0);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-900 font-bold uppercase tracking-wider hover:border-slate-400 active:scale-95 transition-all text-xs"
-            title="Sound the Official Duck Horn"
-          >
-            <Volume2 className="h-3.5 w-3.5 text-amber-500" />
-            <span>Quack Cheer!</span>
-          </button>
+      {/* Sound Interaction buttons */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => playDuckQuack(1.0)}
+          className="flex-1 py-2 px-3 bg-white hover:bg-amber-50 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+        >
+          <Volume2 size={13} className="text-amber-500" />
+          <span>Kwak Cheer! 🦆</span>
+        </button>
 
-          <button
-            id="referee-whistle-btn"
-            onClick={() => {
-              playWhistle();
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-400 text-black font-black uppercase tracking-wider hover:bg-amber-300 active:scale-95 transition-all text-xs border border-amber-500"
-            title="Blow Referee Whistle"
-          >
-            <span>🏁 Start Whistle</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => playWhistle()}
+          className="flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+        >
+          <span>🏁 Startsignaal</span>
+        </button>
       </div>
     </div>
   );
 };
+

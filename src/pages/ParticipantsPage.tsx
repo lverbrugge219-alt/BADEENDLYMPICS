@@ -83,7 +83,7 @@ export const ParticipantsPage: React.FC<ParticipantsPageProps> = ({ onNavigate }
                   {/* Bottom White Member List */}
                   <div className="p-4 bg-white">
                     <div className="text-sky-500 font-display font-black text-[11px] uppercase tracking-widest mb-3">
-                      TEAMLEDEN – {team.members.length}
+                      TEAMLEDEN ({team.members.length} DEELNEMERS)
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {team.members.map((member, idx) => (

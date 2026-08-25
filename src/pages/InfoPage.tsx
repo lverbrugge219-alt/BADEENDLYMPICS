@@ -12,7 +12,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
   const faqs = [
     {
       q: 'Wie kan er meedoen aan de BADEENDLYMPICS?',
-      a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en bier. Teams bestaan uit 2 tot 6 personen.',
+      a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en bier. Teams bestaan uit exact 4 personen.',
     },
     {
       q: 'Moeten we ons eigen bier of badeend meenemen?',
@@ -98,10 +98,10 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
                 TEAMS
               </span>
               <h3 className="font-display font-black text-2xl uppercase tracking-tight text-black mb-2">
-                2 TOT 6 LEDEN
+                EXACT 4 LEDEN
               </h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Minimaal 18 jaar. Eén aangewezen aanvoerder. Teamkleding of badeend-thema sterk aangemoedigd!
+                Minimaal 18 jaar. Elk team bestaat uit exact 4 strijders met één aangewezen aanvoerder. Teamkleding of badeend-thema sterk aangemoedigd!
               </p>
             </div>
           </div>
@@ -137,15 +137,15 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm font-semibold text-slate-800">
             <div className="border-2 border-black bg-white p-5">
               <span className="font-display font-black text-amber-500 text-lg block mb-1">01. FAIR PLAY</span>
-              Geen stiekeme lijm op de biertafelpoten, geen lithium-aandrijving in de badeend en geen discussie met de scheidsrechter.
+              Geen stiekeme hulpmiddelen, geen lithium-aandrijving in de badeend en geen discussie met de scheidsrechter.
             </div>
             <div className="border-2 border-black bg-white p-5">
               <span className="font-display font-black text-amber-500 text-lg block mb-1">02. DRUPPEL-TOLERANTIE</span>
-              Gemorste vloeistof bij het dienbladparcours resulteert in onherroepelijke straftijd volgens de officiële maatcilinder.
+              Gemorste vloeistof of verloren badeenden resulteren in onherroepelijke straftijd volgens de officiële wedstrijdleiding.
             </div>
             <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">03. GEHEIME SPELEN</span>
-              De twee mystery disciplines worden ter plekke onthuld. Alle teamleden moeten zich sportief schikken naar het lot.
+              <span className="font-display font-black text-amber-500 text-lg block mb-1">03. 5 GEHEIME SPELEN</span>
+              Alle 5 de mystery disciplines worden pas live op 3 april onthuld. Alle teamleden schikken zich sportief naar het lot!
             </div>
           </div>
         </div>
