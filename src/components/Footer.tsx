@@ -1,157 +1,141 @@
 import React from 'react';
-import { Award, Compass, Heart, Mail, MapPin, ShieldCheck, Sparkles, Trophy } from 'lucide-react';
-import { PageRoute, SportId } from '../types';
-import { RubberDuckGraphic } from './RubberDuckGraphic';
-import { playDuckQuack } from '../utils/audio';
+import { PageRoute } from '../types';
+import { BADEEND_LOGO_SRC } from '../assets/logo';
 
 interface FooterProps {
-  onNavigate: (route: PageRoute) => void;
+  onNavigate: (page: PageRoute) => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-300">
+    <footer className="bg-black text-slate-400 border-t-2 border-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
-          {/* Col 1 & 2: Branding & Mission */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-2xl bg-amber-400 text-black">
-                <RubberDuckGraphic size={32} color="#F59E0B" accessory="crown" />
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+          {/* Col 1: Branding & Summary */}
+          <div className="md:col-span-6 space-y-4">
+            <button
+              onClick={() => onNavigate('home')}
+              className="text-left cursor-pointer group focus:outline-none flex items-center gap-3"
+            >
+              <div className="w-10 h-10 bg-white border-2 border-white flex items-center justify-center p-0.5 shadow-[2px_2px_0px_0px_rgba(250,204,21,1)] overflow-hidden">
+                <img
+                  src={BADEEND_LOGO_SRC}
+                  alt="Badeendlympics Logo"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <div>
-                <span className="text-2xl font-black uppercase italic tracking-tight text-white">
-                  BADEEND<span className="text-amber-400">LYMPICS</span>
-                </span>
-                <span className="block text-[10px] font-black uppercase tracking-widest text-slate-400">
-                  Utrecht 2026 • Official Championship
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-sm font-normal">
-              The prestigious global gathering celebrating speed, hydrodynamics, synchrony, and pure buoyant spirit. Governed under the Koninklijke Rubber Duck Federation (KBF) sporting code.
+              <span className="font-display font-black text-2xl sm:text-3xl tracking-tight text-white uppercase">
+                BADEEND<span className="text-amber-400">LYMPICS</span> 2027
+              </span>
+            </button>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-md leading-relaxed font-medium">
+              3 april 2027 · Scouting Van Brederode, Papendrecht. Vijf spelen. Eén winnaar. Eeuwige roem.
             </p>
-
-            <div className="flex flex-wrap gap-2 pt-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-300">
-                <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
-                Anti-Doping & Motor-Free
-              </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-bold text-slate-300">
-                <Award className="h-3.5 w-3.5 text-sky-400" />
-                100% Recycled Vinyl
-              </span>
-            </div>
           </div>
 
-          {/* Col 3: 5 Sports Navigation */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-amber-400 mb-4">
-              The 5 Disciplines
+          {/* Col 2: Spelen */}
+          <div className="md:col-span-3">
+            <h4 className="font-display text-xs font-black uppercase tracking-widest text-slate-300 mb-4">
+              SPELEN
             </h4>
-            <ul className="space-y-2.5 text-xs font-medium">
-              {[
-                { route: 'sport-rapids-sprint', label: 'Rapids Sprint 50m' },
-                { route: 'sport-quack-diving', label: 'Artistic Quack Diving' },
-                { route: 'sport-hydro-tug', label: 'Giant Hydro Tug-of-War' },
-                { route: 'sport-pond-water-polo', label: 'Pond Water Polo' },
-                { route: 'sport-whirlpool-slalom', label: 'Whirlpool Slalom' }
-              ].map((item) => (
-                <li key={item.route}>
-                  <button
-                    onClick={() => {
-                      onNavigate(item.route as PageRoute);
-                      playDuckQuack(1.05);
-                    }}
-                    className="text-slate-400 hover:text-white transition-colors"
-                  >
-                    • {item.label}
-                  </button>
-                </li>
-              ))}
+            <ul className="space-y-2.5 text-xs font-semibold">
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-biertafel-opzetten')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Biertafel Opzetten
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-dienblad-parcours')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Dienblad Parcours
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-kratbier-hindernisbaan')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Kratbier Hindernisbaan
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-geheim-01')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Nog Geheim #01
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('spel-geheim-02')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Nog Geheim #02
+                </button>
+              </li>
             </ul>
           </div>
 
-          {/* Col 4: Championship Portals */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-amber-400 mb-4">
-              Championship Hub
+          {/* Col 3: Event */}
+          <div className="md:col-span-3">
+            <h4 className="font-display text-xs font-black uppercase tracking-widest text-slate-300 mb-4">
+              EVENT
             </h4>
-            <ul className="space-y-2.5 text-xs font-medium">
-              <li>
-                <button
-                  onClick={() => onNavigate('schedule')}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
-                  3-Day Race Schedule
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('leaderboard')}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
-                  Live Medal Leaderboard
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => onNavigate('profiles')}
-                  className="text-slate-400 hover:text-white transition-colors"
-                >
-                  Ducklete Profiles
-                </button>
-              </li>
+            <ul className="space-y-2.5 text-xs font-semibold">
               <li>
                 <button
                   onClick={() => onNavigate('info')}
-                  className="text-slate-400 hover:text-white transition-colors"
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Rules, Specs & FAQ
+                  Praktische info
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => onNavigate('signup')}
-                  className="text-amber-400 font-bold hover:text-amber-300 transition-colors"
+                  onClick={() => onNavigate('schema')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Register Team / Flotilla →
+                  Dagschema
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('scores')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Leaderboard
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('deelnemers')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Deelnemers
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('scorebeheer')}
+                  className="text-slate-500 hover:text-amber-400 transition-colors cursor-pointer text-left"
+                >
+                  Organisatie-login
                 </button>
               </li>
             </ul>
           </div>
-
-          {/* Col 5: Venue & Spectators */}
-          <div>
-            <h4 className="text-xs font-black uppercase tracking-widest text-amber-400 mb-4">
-              Spectator Information
-            </h4>
-            <div className="space-y-3 text-xs text-slate-400">
-              <div className="flex items-start gap-2">
-                <MapPin className="h-4 w-4 text-sky-400 shrink-0 mt-0.5" />
-                <span className="leading-relaxed">AquaPark Olympic Flume, Kromme Rijn Complex, Utrecht, The Netherlands</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <span className="font-bold text-amber-400 uppercase text-[10px] tracking-wider">Entry:</span> Free public grandstands
-              </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <span className="font-bold text-sky-400 uppercase text-[10px] tracking-wider">Broadcast:</span> DuckSports24 & Live Jumbotron
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Bottom copyright line */}
-        <div className="mt-12 pt-6 border-t border-slate-900 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
-          <div>
-            © 2026 BADEENDLYMPICS Organizing Committee. All rights reserved. Koninklijke Badeend Federatie.
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-slate-400 flex items-center gap-1 font-medium">
-              Crafted for rubber ducks worldwide <Heart className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />
-            </span>
-          </div>
+        {/* Bottom copyright */}
+        <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
+          <div>© 2027 BADEENDLYMPICS</div>
+          <div className="text-slate-400 font-black">QUACK HARD. WIN HARDER.</div>
         </div>
       </div>
     </footer>
