@@ -1,16 +1,20 @@
 /**
- * Web Audio API synthesized sound generator for Badeendlympics.
- * No external audio files needed; generates high-quality quack & whistle tones in-browser.
+ * Audio engine for Badeendlympics.
+ * Plays the original unmodified MP3 cheer audio as provided, without pitch or frequency manipulation.
  */
 
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
-let cheerAudio: HTMLAudioElement | null = null;
+
+// Audio element holding the original unmodified MP3 audio
+let originalCheerAudio: HTMLAudioElement | null = null;
 
 if (typeof window !== 'undefined') {
   try {
-    cheerAudio = new Audio('/kwak-cheer.mp3');
-    cheerAudio.preload = 'auto';
+    originalCheerAudio = new Audio('/kwak-cheer.mp3');
+    originalCheerAudio.playbackRate = 1.0;
+    originalCheerAudio.preservesPitch = true;
+    originalCheerAudio.preload = 'auto';
   } catch {
     // ignore
   }
@@ -19,7 +23,9 @@ if (typeof window !== 'undefined') {
 export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       audioCtx = new AudioContextClass();
     }
@@ -32,6 +38,9 @@ export function getAudioContext(): AudioContext | null {
 
 export function setSoundMuted(muted: boolean) {
   isMuted = muted;
+  if (originalCheerAudio) {
+    originalCheerAudio.muted = muted;
+  }
 }
 
 export function getSoundMuted(): boolean {
@@ -39,35 +48,36 @@ export function getSoundMuted(): boolean {
 }
 
 /**
- * Plays the Kwak Cheer! sound using the uploaded audio / MP3 or rich synthesized duck quack
+ * Plays the Kwak Cheer! sound exactly using the original, un-modified MP3 audio file.
  */
-export function playDuckQuack(pitch = 1.0) {
+export function playDuckQuack() {
   if (isMuted) return;
 
-  // Try playing MP3 audio file first
-  if (cheerAudio) {
+  // Always play the original un-altered MP3 sound
+  if (originalCheerAudio) {
     try {
-      cheerAudio.currentTime = 0;
-      const playPromise = cheerAudio.play();
+      originalCheerAudio.currentTime = 0;
+      originalCheerAudio.playbackRate = 1.0;
+      const playPromise = originalCheerAudio.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // If autoplay policy or file missing, fallback to Web Audio
-          synthesizeDuckQuack(pitch);
+          // If browser policy requires user gesture or fallback
+          synthesizeDuckQuack();
         });
         return;
       }
     } catch {
-      // Fallback
+      // Fallback if needed
     }
   }
 
-  synthesizeDuckQuack(pitch);
+  synthesizeDuckQuack();
 }
 
 /**
- * Synthesizes a humorous rubber duck "quack" with squeak formant
+ * Clean fallback sound if no audio file is available
  */
-export function synthesizeDuckQuack(pitch = 1.0) {
+export function synthesizeDuckQuack() {
   if (isMuted) return;
   try {
     const ctx = getAudioContext();
@@ -75,44 +85,29 @@ export function synthesizeDuckQuack(pitch = 1.0) {
 
     const now = ctx.currentTime;
 
-    // 1. Initial Squeak (high pitch rubber duck squeak)
-    const squeakOsc = ctx.createOscillator();
-    const squeakGain = ctx.createGain();
-    squeakOsc.type = 'sine';
-    squeakOsc.frequency.setValueAtTime(1400 * pitch, now);
-    squeakOsc.frequency.exponentialRampToValueAtTime(800 * pitch, now + 0.08);
-    squeakGain.gain.setValueAtTime(0.001, now);
-    squeakGain.gain.linearRampToValueAtTime(0.18, now + 0.02);
-    squeakGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-    squeakOsc.connect(squeakGain);
-    squeakGain.connect(ctx.destination);
-    squeakOsc.start(now);
-    squeakOsc.stop(now + 0.1);
-
-    // 2. Main Quack body (resonant duck formant)
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const filter = ctx.createBiquadFilter();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(360 * pitch, now + 0.05);
-    osc.frequency.exponentialRampToValueAtTime(180 * pitch, now + 0.26);
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(190, now + 0.18);
 
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(950 * pitch, now + 0.05);
-    filter.frequency.exponentialRampToValueAtTime(420 * pitch, now + 0.26);
-    filter.Q.setValueAtTime(5.0, now + 0.05);
+    filter.frequency.setValueAtTime(800, now);
+    filter.frequency.exponentialRampToValueAtTime(450, now + 0.18);
+    filter.Q.setValueAtTime(4.0, now);
 
-    gain.gain.setValueAtTime(0.001, now + 0.05);
-    gain.gain.linearRampToValueAtTime(0.3, now + 0.09);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.25, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
 
     osc.connect(filter);
     filter.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.start(now + 0.05);
-    osc.stop(now + 0.29);
+    osc.start(now);
+    osc.stop(now + 0.23);
   } catch {
     // Graceful fallback
   }

@@ -111,7 +111,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ className = '' }
       <div className="flex items-center gap-2">
         <button
           type="button"
-          onClick={() => playDuckQuack(1.0)}
+          onClick={() => playDuckQuack()}
           className="flex-1 py-2 px-3 bg-white hover:bg-amber-50 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all"
         >
           <Volume2 size={13} className="text-amber-500" />
