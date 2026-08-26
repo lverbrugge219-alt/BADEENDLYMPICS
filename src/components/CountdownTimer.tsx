@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Clock, Calendar, Volume2, Sparkles } from 'lucide-react';
-import { playDuckQuack, playWhistle } from '../utils/audio';
+import { Calendar, Volume2 } from 'lucide-react';
+import { playDuckQuack } from '../utils/audio';
 import { BADEEND_LOGO_SRC } from '../assets/logo';
 
 interface CountdownTimerProps {
@@ -107,23 +107,15 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({ className = '' }
         </span>
       </div>
 
-      {/* Sound Interaction buttons */}
-      <div className="flex items-center gap-2">
+      {/* Sound Interaction button */}
+      <div>
         <button
           type="button"
           onClick={() => playDuckQuack()}
-          className="flex-1 py-2 px-3 bg-white hover:bg-amber-50 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+          className="w-full py-2.5 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-2 cursor-pointer transition-all"
         >
-          <Volume2 size={13} className="text-amber-500" />
-          <span>Kwak Cheer! 🦆</span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => playWhistle()}
-          className="flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-        >
-          <span>🏁 Startsignaal</span>
+          <Volume2 size={15} className="text-black" />
+          <span>KWAK CHEER!</span>
         </button>
       </div>
     </div>

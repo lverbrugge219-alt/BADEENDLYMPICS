@@ -6,20 +6,6 @@
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
 
-// Audio element holding the original unmodified MP3 audio
-let originalCheerAudio: HTMLAudioElement | null = null;
-
-if (typeof window !== 'undefined') {
-  try {
-    originalCheerAudio = new Audio('/kwak-cheer.mp3');
-    originalCheerAudio.playbackRate = 1.0;
-    originalCheerAudio.preservesPitch = true;
-    originalCheerAudio.preload = 'auto';
-  } catch {
-    // ignore
-  }
-}
-
 export function getAudioContext(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   if (!audioCtx) {
@@ -38,9 +24,6 @@ export function getAudioContext(): AudioContext | null {
 
 export function setSoundMuted(muted: boolean) {
   isMuted = muted;
-  if (originalCheerAudio) {
-    originalCheerAudio.muted = muted;
-  }
 }
 
 export function getSoundMuted(): boolean {
@@ -48,30 +31,26 @@ export function getSoundMuted(): boolean {
 }
 
 /**
- * Plays the Kwak Cheer! sound exactly using the original, un-modified MP3 audio file.
+ * Plays the Kwak Cheer! sound directly from /kwak-cheer.mp3
  */
 export function playDuckQuack() {
-  if (isMuted) return;
+  if (isMuted || typeof window === 'undefined') return;
 
-  // Always play the original un-altered MP3 sound
-  if (originalCheerAudio) {
-    try {
-      originalCheerAudio.currentTime = 0;
-      originalCheerAudio.playbackRate = 1.0;
-      const playPromise = originalCheerAudio.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // If browser policy requires user gesture or fallback
-          synthesizeDuckQuack();
-        });
-        return;
-      }
-    } catch {
-      // Fallback if needed
+  try {
+    const audio = new Audio('/kwak-cheer.mp3');
+    audio.volume = 1.0;
+    audio.currentTime = 0;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((err) => {
+        console.warn('MP3 playback fallback triggered:', err);
+        synthesizeDuckQuack();
+      });
     }
+  } catch (e) {
+    console.warn('Audio creation error:', e);
+    synthesizeDuckQuack();
   }
-
-  synthesizeDuckQuack();
 }
 
 /**
