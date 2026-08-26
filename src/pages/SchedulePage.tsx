@@ -86,7 +86,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ onNavigate }) => {
               KLAAR VOOR DE STRIJD?
             </div>
             <div className="text-xs text-slate-300 font-medium mt-1">
-              Schrijf jouw team van 4 personen gratis in voor de BADEENDLYMPICS 2027.
+              Schrijf jouw team van 4 personen in voor de BADEENDLYMPICS 2027.
             </div>
           </div>
           <button
