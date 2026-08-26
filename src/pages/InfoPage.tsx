@@ -24,7 +24,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
     },
     {
       q: 'Wat kosten de inschrijvingen?',
-      a: 'Inschrijven is 100% gratis t/m 1 maart 2027. Er is geen maximum aantal teams, dus meld je gerust aan met al je vrienden, familie of collega’s!',
+      a: 'Inschrijven is geheel gratis en kan t/m 1 maart 2027. Eventuele kosten worden achteraf verrekend met de deelnemers.',
     },
     {
       q: 'Wat winnen we als we eerste worden?',
