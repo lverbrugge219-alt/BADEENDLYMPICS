@@ -1,40 +1,55 @@
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+  getDocs,
+  writeBatch,
+} from 'firebase/firestore';
+import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Team, ScoreEntry, SpelId } from '../types';
-import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
+import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN } from '../data/mockData';
 
-const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v4';
-const SCORES_STORAGE_KEY = 'badeendlympics_scores_v4';
+const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
+const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
 const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
 const TEAM_SESSION_KEY = 'badeendlympics_team_session';
 
-export function getStoredTeams(): Team[] {
+// In-memory cache for fast synchronous access
+let cachedTeams: Team[] = [];
+let cachedScores: ScoreEntry[] = [];
+let isFirestoreInitialized = false;
+
+// Load initial local data
+function initLocalCache() {
   try {
-    const raw = localStorage.getItem(TEAMS_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(INITIAL_TEAMS));
-      return INITIAL_TEAMS;
-    }
-    const parsed: Team[] = JSON.parse(raw);
-    // Ensure all teams have valid data
-    return parsed.map((t) => ({
-      ...t,
-      password: t.password || 'Badeend2027',
-    }));
+    const rawTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
+    cachedTeams = rawTeams ? JSON.parse(rawTeams) : INITIAL_TEAMS;
   } catch {
-    return INITIAL_TEAMS;
+    cachedTeams = INITIAL_TEAMS;
+  }
+
+  try {
+    const rawScores = localStorage.getItem(SCORES_STORAGE_KEY);
+    cachedScores = rawScores ? JSON.parse(rawScores) : INITIAL_SCORES;
+  } catch {
+    cachedScores = INITIAL_SCORES;
   }
 }
 
+initLocalCache();
+
+// Synchronous getters for components
+export function getStoredTeams(): Team[] {
+  return cachedTeams.map((t) => ({
+    ...t,
+    password: t.password || 'Badeend2027',
+  }));
+}
+
 export function getStoredScores(): ScoreEntry[] {
-  try {
-    const raw = localStorage.getItem(SCORES_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(INITIAL_SCORES));
-      return INITIAL_SCORES;
-    }
-    return JSON.parse(raw);
-  } catch {
-    return INITIAL_SCORES;
-  }
+  return cachedScores;
 }
 
 export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team[] {
@@ -67,11 +82,99 @@ export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team
   });
 }
 
-export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>): Team {
-  const currentTeams = getStoredTeams();
+/**
+ * Initialize Firestore listeners and seed initial data if database is empty.
+ */
+export function initFirestoreSync() {
+  if (isFirestoreInitialized) return () => {};
+  isFirestoreInitialized = true;
 
+  const teamsCollection = collection(db, 'teams');
+  const scoresCollection = collection(db, 'scores');
+
+  // Check and seed initial data if Firestore is empty
+  getDocs(teamsCollection)
+    .then((snap) => {
+      if (snap.empty) {
+        const batch = writeBatch(db);
+        INITIAL_TEAMS.forEach((team) => {
+          const teamRef = doc(db, 'teams', team.id);
+          batch.set(teamRef, team);
+        });
+        INITIAL_SCORES.forEach((score) => {
+          const scoreRef = doc(db, 'scores', score.id);
+          batch.set(scoreRef, score);
+        });
+        batch.commit().catch((err) => {
+          console.error('Error seeding initial Firestore data:', err);
+        });
+      }
+    })
+    .catch((err) => {
+      console.warn('Firestore initial check failed, using local/cached data:', err);
+    });
+
+  // Real-time listener for Teams
+  const unsubscribeTeams = onSnapshot(
+    teamsCollection,
+    (snapshot) => {
+      const liveTeams: Team[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as Team;
+        liveTeams.push({
+          ...data,
+          id: docSnap.id,
+          password: data.password || 'Badeend2027',
+        });
+      });
+
+      if (liveTeams.length > 0) {
+        cachedTeams = liveTeams;
+        localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(liveTeams));
+        window.dispatchEvent(new Event('badeendlympics_data_change'));
+      }
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.GET, 'teams');
+    }
+  );
+
+  // Real-time listener for Scores
+  const unsubscribeScores = onSnapshot(
+    scoresCollection,
+    (snapshot) => {
+      const liveScores: ScoreEntry[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as ScoreEntry;
+        liveScores.push({
+          ...data,
+          id: docSnap.id,
+        });
+      });
+
+      if (liveScores.length > 0 || !snapshot.empty) {
+        cachedScores = liveScores;
+        localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(liveScores));
+        window.dispatchEvent(new Event('badeendlympics_data_change'));
+      }
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.GET, 'scores');
+    }
+  );
+
+  return () => {
+    unsubscribeTeams();
+    unsubscribeScores();
+  };
+}
+
+export function saveTeam(
+  teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>
+): Team {
+  const newTeamId = `team-${Date.now()}`;
   const newTeam: Team = {
-    id: `team-${Date.now()}`,
+    id: newTeamId,
     name: teamData.name.trim(),
     aanvoerder: teamData.aanvoerder.trim(),
     email: teamData.email.trim().toLowerCase(),
@@ -88,9 +191,16 @@ export function saveTeam(teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' |
     totaal: 0,
   };
 
-  const updatedTeams = [newTeam, ...currentTeams];
-  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(updatedTeams));
+  // 1. Update local cache immediately
+  cachedTeams = [newTeam, ...cachedTeams.filter((t) => t.id !== newTeamId)];
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(cachedTeams));
   window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  // 2. Persist to Firestore
+  setDoc(doc(db, 'teams', newTeamId), newTeam).catch((error) => {
+    handleFirestoreError(error, OperationType.CREATE, `teams/${newTeamId}`);
+  });
+
   return newTeam;
 }
 
@@ -98,11 +208,10 @@ export function updateTeam(
   teamId: string,
   updatedData: Partial<Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>>
 ): Team | null {
-  const currentTeams = getStoredTeams();
-  const index = currentTeams.findIndex((t) => t.id === teamId);
+  const index = cachedTeams.findIndex((t) => t.id === teamId);
   if (index === -1) return null;
 
-  const oldTeam = currentTeams[index];
+  const oldTeam = cachedTeams[index];
   const oldName = oldTeam.name;
 
   const updatedTeam: Team = {
@@ -116,25 +225,29 @@ export function updateTeam(
       : oldTeam.members,
   };
 
-  currentTeams[index] = updatedTeam;
-  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(currentTeams));
+  cachedTeams[index] = updatedTeam;
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(cachedTeams));
 
   // If team name changed, update the name in scores
   if (updatedData.name && updatedData.name.trim().toLowerCase() !== oldName.trim().toLowerCase()) {
-    const currentScores = getStoredScores();
     const newName = updatedData.name.trim();
-    const updatedScores = currentScores.map((s) => {
+    cachedScores = cachedScores.map((s) => {
       if (s.teamId === teamId || s.teamName.trim().toLowerCase() === oldName.trim().toLowerCase()) {
-        return {
-          ...s,
-          teamId,
-          teamName: newName,
-        };
+        const updatedScore = { ...s, teamId, teamName: newName };
+        setDoc(doc(db, 'scores', s.id), updatedScore, { merge: true }).catch((err) => {
+          handleFirestoreError(err, OperationType.UPDATE, `scores/${s.id}`);
+        });
+        return updatedScore;
       }
       return s;
     });
-    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
+    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(cachedScores));
   }
+
+  // Persist to Firestore
+  setDoc(doc(db, 'teams', teamId), updatedTeam, { merge: true }).catch((error) => {
+    handleFirestoreError(error, OperationType.UPDATE, `teams/${teamId}`);
+  });
 
   // Also update active session if this team is logged in
   const activeTeam = getTeamSession();
@@ -147,20 +260,35 @@ export function updateTeam(
 }
 
 export function deleteTeam(teamId: string): void {
-  const currentTeams = getStoredTeams();
-  const teamToDelete = currentTeams.find((t) => t.id === teamId);
-  const updatedTeams = currentTeams.filter((t) => t.id !== teamId);
-  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(updatedTeams));
+  const teamToDelete = cachedTeams.find((t) => t.id === teamId);
+  cachedTeams = cachedTeams.filter((t) => t.id !== teamId);
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(cachedTeams));
+
+  // Delete from Firestore
+  deleteDoc(doc(db, 'teams', teamId)).catch((error) => {
+    handleFirestoreError(error, OperationType.DELETE, `teams/${teamId}`);
+  });
 
   // Also remove scores for this team
   if (teamToDelete) {
-    const currentScores = getStoredScores();
-    const updatedScores = currentScores.filter(
+    const scoresToDelete = cachedScores.filter(
+      (s) =>
+        s.teamId === teamId ||
+        s.teamName.trim().toLowerCase() === teamToDelete.name.trim().toLowerCase()
+    );
+
+    scoresToDelete.forEach((s) => {
+      deleteDoc(doc(db, 'scores', s.id)).catch((err) => {
+        handleFirestoreError(err, OperationType.DELETE, `scores/${s.id}`);
+      });
+    });
+
+    cachedScores = cachedScores.filter(
       (s) =>
         s.teamId !== teamId &&
         s.teamName.trim().toLowerCase() !== teamToDelete.name.trim().toLowerCase()
     );
-    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updatedScores));
+    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(cachedScores));
   }
 
   // If this team was logged in, log them out
@@ -172,10 +300,12 @@ export function deleteTeam(teamId: string): void {
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 }
 
-export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: number): ScoreEntry {
-  const currentScores = getStoredScores();
-  const currentTeams = getStoredTeams();
-  const matchingTeam = currentTeams.find(
+export function saveOrUpdateScore(
+  teamName: string,
+  spelId: SpelId,
+  points: number
+): ScoreEntry {
+  const matchingTeam = cachedTeams.find(
     (t) => t.name.trim().toLowerCase() === teamName.trim().toLowerCase()
   );
 
@@ -183,7 +313,7 @@ export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: numb
   const spelName = spel ? spel.name : spelId;
 
   // Check if score exists for this team & game
-  const existingIndex = currentScores.findIndex(
+  const existingIndex = cachedScores.findIndex(
     (s) =>
       (s.teamName.trim().toLowerCase() === teamName.trim().toLowerCase() ||
         (matchingTeam && s.teamId === matchingTeam.id)) &&
@@ -193,16 +323,15 @@ export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: numb
   let resultEntry: ScoreEntry;
 
   if (existingIndex >= 0) {
-    const updated = [...currentScores];
-    updated[existingIndex] = {
-      ...updated[existingIndex],
-      teamId: matchingTeam ? matchingTeam.id : updated[existingIndex].teamId,
+    const existing = cachedScores[existingIndex];
+    resultEntry = {
+      ...existing,
+      teamId: matchingTeam ? matchingTeam.id : existing.teamId,
       teamName: teamName.trim(),
       points,
       updatedAt: new Date().toISOString(),
     };
-    resultEntry = updated[existingIndex];
-    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updated));
+    cachedScores[existingIndex] = resultEntry;
   } else {
     resultEntry = {
       id: `score-${Date.now()}`,
@@ -213,24 +342,50 @@ export function saveOrUpdateScore(teamName: string, spelId: SpelId, points: numb
       points,
       updatedAt: new Date().toISOString(),
     };
-    const updated = [resultEntry, ...currentScores];
-    localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updated));
+    cachedScores = [resultEntry, ...cachedScores];
   }
+
+  localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(cachedScores));
+
+  // Persist to Firestore
+  setDoc(doc(db, 'scores', resultEntry.id), resultEntry).catch((error) => {
+    handleFirestoreError(error, OperationType.WRITE, `scores/${resultEntry.id}`);
+  });
 
   window.dispatchEvent(new Event('badeendlympics_data_change'));
   return resultEntry;
 }
 
 export function deleteScore(scoreId: string): void {
-  const currentScores = getStoredScores();
-  const updated = currentScores.filter((s) => s.id !== scoreId);
-  localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(updated));
+  cachedScores = cachedScores.filter((s) => s.id !== scoreId);
+  localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(cachedScores));
+
+  // Delete from Firestore
+  deleteDoc(doc(db, 'scores', scoreId)).catch((error) => {
+    handleFirestoreError(error, OperationType.DELETE, `scores/${scoreId}`);
+  });
+
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 }
 
 export function resetAllData(): void {
+  cachedTeams = INITIAL_TEAMS;
+  cachedScores = INITIAL_SCORES;
   localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(INITIAL_TEAMS));
   localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(INITIAL_SCORES));
+
+  // Reseed Firestore
+  const batch = writeBatch(db);
+  INITIAL_TEAMS.forEach((team) => {
+    batch.set(doc(db, 'teams', team.id), team);
+  });
+  INITIAL_SCORES.forEach((score) => {
+    batch.set(doc(db, 'scores', score.id), score);
+  });
+  batch.commit().catch((error) => {
+    console.error('Error resetting Firestore data:', error);
+  });
+
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 }
 
@@ -262,9 +417,7 @@ export function getTeamSession(): Team | null {
     const raw = localStorage.getItem(TEAM_SESSION_KEY);
     if (!raw) return null;
     const sessionTeam: Team = JSON.parse(raw);
-    // Refresh latest team data from storage
-    const all = getStoredTeams();
-    const fresh = all.find((t) => t.id === sessionTeam.id);
+    const fresh = cachedTeams.find((t) => t.id === sessionTeam.id);
     return fresh || sessionTeam;
   } catch {
     return null;

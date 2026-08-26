@@ -1,0 +1,105 @@
+{
+  "entities": {
+    "Team": {
+      "title": "Team",
+      "description": "Represents a participating team in the Badeendlympics 2027.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the team."
+        },
+        "name": {
+          "type": "string",
+          "description": "Official team name in uppercase.",
+          "maxLength": 100
+        },
+        "aanvoerder": {
+          "type": "string",
+          "description": "Full name of the team captain.",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address of the team captain.",
+          "maxLength": 150
+        },
+        "password": {
+          "type": "string",
+          "description": "Team portal management password.",
+          "maxLength": 100
+        },
+        "members": {
+          "type": "array",
+          "description": "List of the 4 team members."
+        },
+        "registeredAt": {
+          "type": "string",
+          "description": "ISO timestamp when the team registered."
+        },
+        "scores": {
+          "type": "object",
+          "description": "Mapping of spelId to points scored."
+        },
+        "totaal": {
+          "type": "number",
+          "description": "Calculated total points across all 5 disciplines."
+        }
+      },
+      "required": ["id", "name", "aanvoerder", "email", "members", "registeredAt"]
+    },
+    "ScoreEntry": {
+      "title": "ScoreEntry",
+      "description": "Represents points awarded to a team for a specific discipline.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique score identifier."
+        },
+        "teamId": {
+          "type": "string",
+          "description": "Optional team document ID."
+        },
+        "teamName": {
+          "type": "string",
+          "description": "Name of the team the score belongs to.",
+          "maxLength": 100
+        },
+        "spelId": {
+          "type": "string",
+          "description": "Identifier of the discipline (e.g. geheim-01).",
+          "maxLength": 50
+        },
+        "spelName": {
+          "type": "string",
+          "description": "Display name of the discipline.",
+          "maxLength": 100
+        },
+        "points": {
+          "type": "number",
+          "description": "Numerical points awarded."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last score update."
+        }
+      },
+      "required": ["id", "teamName", "spelId", "spelName", "points", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/teams/{teamId}": {
+      "schema": {
+        "$ref": "#/entities/Team"
+      },
+      "description": "Collection of all registered teams."
+    },
+    "/scores/{scoreId}": {
+      "schema": {
+        "$ref": "#/entities/ScoreEntry"
+      },
+      "description": "Collection of recorded scores for each game and team."
+    }
+  }
+}

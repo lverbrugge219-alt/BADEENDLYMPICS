@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Common Security Helpers
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function isValidTeam(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.aanvoerder is string && data.aanvoerder.size() > 0 && data.aanvoerder.size() <= 100 &&
+             data.email is string && data.email.size() > 0 && data.email.size() <= 150 &&
+             data.members is list && data.members.size() <= 10;
+    }
+
+    function isValidScore(data) {
+      return data.teamName is string && data.teamName.size() > 0 && data.teamName.size() <= 100 &&
+             data.spelId is string && data.spelId.size() > 0 && data.spelId.size() <= 50 &&
+             data.points is number && data.points >= 0 && data.points <= 10000;
+    }
+
+    // Teams Collection
+    match /teams/{teamId} {
+      allow read: if true;
+      allow create: if isValidId(teamId) && isValidTeam(incoming());
+      allow update: if isValidId(teamId) && isValidTeam(incoming());
+      allow delete: if isValidId(teamId);
+    }
+
+    // Scores Collection
+    match /scores/{scoreId} {
+      allow read: if true;
+      allow create: if isValidId(scoreId) && isValidScore(incoming());
+      allow update: if isValidId(scoreId) && isValidScore(incoming());
+      allow delete: if isValidId(scoreId);
+    }
+  }
+}

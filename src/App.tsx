@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageRoute, SpelId } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
@@ -12,10 +12,16 @@ import { LoginPage } from './pages/LoginPage';
 import { TeamPortalPage } from './pages/TeamPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { SportDetailPage } from './pages/SportDetailPage';
+import { initFirestoreSync } from './utils/storage';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
   const [loginInitialTab, setLoginInitialTab] = useState<'team' | 'organisatie'>('team');
+
+  useEffect(() => {
+    const cleanup = initFirestoreSync();
+    return cleanup;
+  }, []);
 
   const handleNavigate = (route: PageRoute) => {
     if (route === 'scorebeheer') {
