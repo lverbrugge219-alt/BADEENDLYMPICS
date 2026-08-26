@@ -362,7 +362,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     02
                   </span>
                   <p className="leading-relaxed">
-                    Inschrijven is 100% gratis. Er is <strong>geen maximum aantal teams</strong>.
+                    Inschrijven is gratis. Er is <strong>geen maximum aantal teams</strong>.
                   </p>
                 </div>
 
