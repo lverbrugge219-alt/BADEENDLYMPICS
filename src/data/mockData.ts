@@ -88,89 +88,9 @@ export const ADMIN_CREDENTIALS = {
   password: 'Badeendgames2027',
 };
 
-export const INITIAL_TEAMS: Team[] = [
-  {
-    id: 'team-drijvende-legendes',
-    name: 'DE DRIJVENDE LEGENDES',
-    aanvoerder: 'Kapitein Kwak',
-    email: 'kapitein@drijvendelegendes.nl',
-    password: 'Badeend2027',
-    members: ['Anna', 'Bram', 'Cees', 'Daan'],
-    registeredAt: '2026-08-20T10:00:00Z',
-    scores: {
-      'geheim-01': 42,
-      'geheim-02': null,
-      'geheim-03': null,
-      'geheim-04': null,
-      'geheim-05': null,
-    },
-    totaal: 42,
-  },
-  {
-    id: 'team-schuimkoppen',
-    name: 'DE SCHUIMKOPPEN',
-    aanvoerder: 'Lars van Dijk',
-    email: 'lars@schuimkoppen.nl',
-    password: 'Badeend2027',
-    members: ['Lars', 'Sander', 'Koen', 'Tim'],
-    registeredAt: '2026-08-21T14:30:00Z',
-    scores: {
-      'geheim-01': 38,
-      'geheim-02': null,
-      'geheim-03': null,
-      'geheim-04': null,
-      'geheim-05': null,
-    },
-    totaal: 38,
-  },
-  {
-    id: 'team-kwakzalvers',
-    name: 'DE KWAKZALVERS',
-    aanvoerder: 'Sanne Meijer',
-    email: 'sanne@kwakzalvers.nl',
-    password: 'Badeend2027',
-    members: ['Sanne', 'Eva', 'Daan', 'Ruben'],
-    registeredAt: '2026-08-22T09:15:00Z',
-    scores: {
-      'geheim-01': 35,
-      'geheim-02': null,
-      'geheim-03': null,
-      'geheim-04': null,
-      'geheim-05': null,
-    },
-    totaal: 35,
-  },
-];
+export const INITIAL_TEAMS: Team[] = [];
 
-export const INITIAL_SCORES: ScoreEntry[] = [
-  {
-    id: 'score-1',
-    teamId: 'team-drijvende-legendes',
-    teamName: 'DE DRIJVENDE LEGENDES',
-    spelId: 'geheim-01',
-    spelName: 'NOG GEHEIM #01',
-    points: 42,
-    updatedAt: '2026-08-20T11:00:00Z',
-  },
-  {
-    id: 'score-2',
-    teamId: 'team-schuimkoppen',
-    teamName: 'DE SCHUIMKOPPEN',
-    spelId: 'geheim-01',
-    spelName: 'NOG GEHEIM #01',
-    points: 38,
-    updatedAt: '2026-08-21T15:00:00Z',
-  },
-  {
-    id: 'score-3',
-    teamId: 'team-kwakzalvers',
-    teamName: 'DE KWAKZALVERS',
-    spelId: 'geheim-01',
-    spelName: 'NOG GEHEIM #01',
-    points: 35,
-    updatedAt: '2026-08-22T10:00:00Z',
-  },
-];
+export const INITIAL_SCORES: ScoreEntry[] = [];
 
 export const SCHEDULE_ITEMS: ScheduleItem[] = [
   {

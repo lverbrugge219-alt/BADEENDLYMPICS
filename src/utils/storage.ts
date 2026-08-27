@@ -4,12 +4,10 @@ import {
   setDoc,
   deleteDoc,
   onSnapshot,
-  getDocs,
-  writeBatch,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Team, ScoreEntry, SpelId } from '../types';
-import { INITIAL_TEAMS, INITIAL_SCORES, SPELEN } from '../data/mockData';
+import { SPELEN } from '../data/mockData';
 
 const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
 const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
@@ -21,20 +19,20 @@ let cachedTeams: Team[] = [];
 let cachedScores: ScoreEntry[] = [];
 let isFirestoreInitialized = false;
 
-// Load initial local data
+// Load initial local data without hardcoded dummy entries
 function initLocalCache() {
   try {
     const rawTeams = localStorage.getItem(TEAMS_STORAGE_KEY);
-    cachedTeams = rawTeams ? JSON.parse(rawTeams) : INITIAL_TEAMS;
+    cachedTeams = rawTeams ? JSON.parse(rawTeams) : [];
   } catch {
-    cachedTeams = INITIAL_TEAMS;
+    cachedTeams = [];
   }
 
   try {
     const rawScores = localStorage.getItem(SCORES_STORAGE_KEY);
-    cachedScores = rawScores ? JSON.parse(rawScores) : INITIAL_SCORES;
+    cachedScores = rawScores ? JSON.parse(rawScores) : [];
   } catch {
-    cachedScores = INITIAL_SCORES;
+    cachedScores = [];
   }
 }
 
@@ -83,7 +81,8 @@ export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team
 }
 
 /**
- * Initialize Firestore listeners and seed initial data if database is empty.
+ * Initialize Firestore listeners.
+ * Realtime sync loads and listens to teams and scores from Firestore without injecting mock data.
  */
 export function initFirestoreSync() {
   if (isFirestoreInitialized) return () => {};
@@ -92,29 +91,7 @@ export function initFirestoreSync() {
   const teamsCollection = collection(db, 'teams');
   const scoresCollection = collection(db, 'scores');
 
-  // Check and seed initial data if Firestore is empty
-  getDocs(teamsCollection)
-    .then((snap) => {
-      if (snap.empty) {
-        const batch = writeBatch(db);
-        INITIAL_TEAMS.forEach((team) => {
-          const teamRef = doc(db, 'teams', team.id);
-          batch.set(teamRef, team);
-        });
-        INITIAL_SCORES.forEach((score) => {
-          const scoreRef = doc(db, 'scores', score.id);
-          batch.set(scoreRef, score);
-        });
-        batch.commit().catch((err) => {
-          console.error('Error seeding initial Firestore data:', err);
-        });
-      }
-    })
-    .catch((err) => {
-      console.warn('Firestore initial check failed, using local/cached data:', err);
-    });
-
-  // Real-time listener for Teams
+  // Real-time listener for Teams from Firestore
   const unsubscribeTeams = onSnapshot(
     teamsCollection,
     (snapshot) => {
@@ -128,18 +105,16 @@ export function initFirestoreSync() {
         });
       });
 
-      if (liveTeams.length > 0) {
-        cachedTeams = liveTeams;
-        localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(liveTeams));
-        window.dispatchEvent(new Event('badeendlympics_data_change'));
-      }
+      cachedTeams = liveTeams;
+      localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(liveTeams));
+      window.dispatchEvent(new Event('badeendlympics_data_change'));
     },
     (error) => {
       handleFirestoreError(error, OperationType.GET, 'teams');
     }
   );
 
-  // Real-time listener for Scores
+  // Real-time listener for Scores from Firestore
   const unsubscribeScores = onSnapshot(
     scoresCollection,
     (snapshot) => {
@@ -152,11 +127,9 @@ export function initFirestoreSync() {
         });
       });
 
-      if (liveScores.length > 0 || !snapshot.empty) {
-        cachedScores = liveScores;
-        localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(liveScores));
-        window.dispatchEvent(new Event('badeendlympics_data_change'));
-      }
+      cachedScores = liveScores;
+      localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(liveScores));
+      window.dispatchEvent(new Event('badeendlympics_data_change'));
     },
     (error) => {
       handleFirestoreError(error, OperationType.GET, 'scores');
@@ -369,22 +342,17 @@ export function deleteScore(scoreId: string): void {
 }
 
 export function resetAllData(): void {
-  cachedTeams = INITIAL_TEAMS;
-  cachedScores = INITIAL_SCORES;
-  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify(INITIAL_TEAMS));
-  localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(INITIAL_SCORES));
+  cachedTeams.forEach((team) => {
+    deleteDoc(doc(db, 'teams', team.id)).catch(() => {});
+  });
+  cachedScores.forEach((score) => {
+    deleteDoc(doc(db, 'scores', score.id)).catch(() => {});
+  });
 
-  // Reseed Firestore
-  const batch = writeBatch(db);
-  INITIAL_TEAMS.forEach((team) => {
-    batch.set(doc(db, 'teams', team.id), team);
-  });
-  INITIAL_SCORES.forEach((score) => {
-    batch.set(doc(db, 'scores', score.id), score);
-  });
-  batch.commit().catch((error) => {
-    console.error('Error resetting Firestore data:', error);
-  });
+  cachedTeams = [];
+  cachedScores = [];
+  localStorage.setItem(TEAMS_STORAGE_KEY, JSON.stringify([]));
+  localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify([]));
 
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 }

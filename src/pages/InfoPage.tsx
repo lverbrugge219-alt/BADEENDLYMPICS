@@ -87,7 +87,7 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
                 SCOUTING PAPENDRECHT
               </h3>
               <p className="text-xs text-slate-600 font-medium leading-relaxed">
-                Scouting Van Brederode terrein, Papendrecht. Goed bereikbaar per fiets en OV.
+                Terrein Scouting Van Brederode, Batenstein.  Kamerlingh Onneslaan 1, 3356BP Papendrecht.
               </p>
             </div>
           </div>
