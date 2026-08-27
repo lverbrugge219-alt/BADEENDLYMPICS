@@ -380,7 +380,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     04
                   </span>
                   <p className="leading-relaxed">
-                    De disciplines worden de komende tijd bekendgemaakt. Met je teamwachtwoord kun je altijd wijzigingen doorgeven.
+                    De disciplines worden de komende tijd bekendgemaakt.
                   </p>
                 </div>
               </div>
