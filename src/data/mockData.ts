@@ -102,8 +102,8 @@ export const SCHEDULE_ITEMS: ScheduleItem[] = [
   {
     time: '13:30 - 14:00',
     title: 'Officiële Openingsceremonie',
-    description: 'Ontsteking van het Olympisch vuur en officiële opening van de BADEENDLYMPICS 2027.',
-    location: 'Evenemententerrein Scouting Van Brederode',
+    description: 'Ontsteking van het Badeendlympisch vuur en officiële opening van de BADEENDLYMPICS 2027.',
+    location: 'scoutingterrein Batenstein, Scouting Van Brederode',
     highlight: true,
   },
   {
@@ -116,8 +116,8 @@ export const SCHEDULE_ITEMS: ScheduleItem[] = [
   {
     time: '14:45 - 15:00',
     title: 'Korte Pauze',
-    description: 'Muziek, drankjes en voorbereiding op de tweede spelronde.',
-    location: 'Kantine & Terras',
+    description: 'Korte hydration break en voorbereiding op het tweede spel.',
+    location: 'Bar & Buiten',
   },
   {
     time: '15:00 - 15:45',
@@ -150,14 +150,14 @@ export const SCHEDULE_ITEMS: ScheduleItem[] = [
   {
     time: '18:00 - 18:30',
     title: 'Puntentelling & Prijsuitreiking',
-    description: 'Kroning van de BADEENDLYMPICS Kampioenen 2027 en uitreiking van een welverdiende goudgele rakker voor de winnaars!',
-    location: 'Podium Scouting Van Brederode',
+    description: 'Kroning van de BADEENDLYMPICS Kampioenen 2027 en uitreiking van een welverdiende goudgele rakkers!',
+    location: 'Scoutingterrein Batenstein, Scouting van Brederode',
     highlight: true,
   },
   {
-    time: '18:30 - Laat',
-    title: 'Afsluitend Feest & Derde Helft',
-    description: 'Gezelligheid, BBQ, muziek en napraten over de legendarische BADEENDLYMPICS.',
-    location: 'Clubgebouw & Buitenterrein',
+    time: '18:30 - later',
+    title: 'Afsluitende borrel',
+    description: 'Gezelligheid, muziek en napraten over de legendarische BADEENDLYMPICS.',
+    location: 'Bar & Buiten',
   },
 ];
