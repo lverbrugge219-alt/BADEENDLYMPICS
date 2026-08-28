@@ -18,7 +18,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           {/* Left Hero Content */}
           <div className="lg:col-span-7 p-6 sm:p-10 lg:p-16 flex flex-col justify-center">
             <div className="text-sky-500 font-display font-black text-xs sm:text-sm tracking-widest uppercase mb-3 sm:mb-4">
-              HET SPORTEVENEMENT VAN PAPENDRECHT – 3 APRIL 2027
+              HET GROTE BADEEND BIER EN SPORT SPEKTAKEL – 3 APRIL 2027
             </div>
 
             <h1 className="font-display font-black text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.88] tracking-tighter uppercase mb-6 sm:mb-8">
