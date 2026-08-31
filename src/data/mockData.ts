@@ -97,7 +97,7 @@ export const SCHEDULE_ITEMS: ScheduleItem[] = [
     time: '13:00 - 13:30',
     title: 'Inloop & Teamregistratie',
     description: 'Aanmelden van alle teams bij de wedstrijdbalie, controle van de teamleden (18+) en bewondering van de teamkleding.',
-    location: 'Hoofdingang Scouting Van Brederode',
+    location: 'Ingang scoutingterrein Batenstein, Scouting Van Brederode',
   },
   {
     time: '13:30 - 14:00',
