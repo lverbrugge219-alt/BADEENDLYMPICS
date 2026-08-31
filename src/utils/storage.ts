@@ -7,7 +7,8 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { Team, ScoreEntry, SpelId } from '../types';
-import { SPELEN } from '../data/mockData';
+import { SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
+import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
 
 const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
 const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
@@ -142,16 +143,21 @@ export function initFirestoreSync() {
   };
 }
 
-export function saveTeam(
+export async function saveTeam(
   teamData: Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>
-): Team {
+): Promise<Team> {
   const newTeamId = `team-${Date.now()}`;
+  const rawPassword = teamData.password || 'Badeend2027';
+  const hashedPassword = isSha256Hash(rawPassword)
+    ? rawPassword
+    : await hashPassword(rawPassword);
+
   const newTeam: Team = {
     id: newTeamId,
     name: teamData.name.trim(),
     aanvoerder: teamData.aanvoerder.trim(),
     email: teamData.email.trim().toLowerCase(),
-    password: teamData.password || 'Badeend2027',
+    password: hashedPassword,
     members: teamData.members.map((m) => m.trim()).filter((m) => m.length > 0),
     registeredAt: new Date().toISOString(),
     scores: {
@@ -177,22 +183,29 @@ export function saveTeam(
   return newTeam;
 }
 
-export function updateTeam(
+export async function updateTeam(
   teamId: string,
   updatedData: Partial<Omit<Team, 'id' | 'registeredAt' | 'scores' | 'totaal'>>
-): Team | null {
+): Promise<Team | null> {
   const index = cachedTeams.findIndex((t) => t.id === teamId);
   if (index === -1) return null;
 
   const oldTeam = cachedTeams[index];
   const oldName = oldTeam.name;
 
+  let newPasswordHash = oldTeam.password;
+  if (updatedData.password) {
+    newPasswordHash = isSha256Hash(updatedData.password)
+      ? updatedData.password
+      : await hashPassword(updatedData.password);
+  }
+
   const updatedTeam: Team = {
     ...oldTeam,
     name: updatedData.name ? updatedData.name.trim() : oldTeam.name,
     aanvoerder: updatedData.aanvoerder ? updatedData.aanvoerder.trim() : oldTeam.aanvoerder,
     email: updatedData.email ? updatedData.email.trim().toLowerCase() : oldTeam.email,
-    password: updatedData.password ? updatedData.password : oldTeam.password,
+    password: newPasswordHash,
     members: updatedData.members
       ? updatedData.members.map((m) => m.trim()).filter(Boolean)
       : oldTeam.members,
@@ -223,8 +236,8 @@ export function updateTeam(
   });
 
   // Also update active session if this team is logged in
-  const activeTeam = getTeamSession();
-  if (activeTeam && activeTeam.id === teamId) {
+  const activeTeamdirect = getTeamSession();
+  if (activeTeamdirect && activeTeamdirect.id === teamId) {
     setTeamSession(updatedTeam);
   }
 
@@ -408,4 +421,55 @@ export function setTeamSession(team: Team | null): void {
 export function logoutAll(): void {
   setAdminSession(false);
   setTeamSession(null);
+}
+
+/**
+ * Authenticates a team using identifier (email or team name) and password.
+ * Automatically verifies SHA-256 hashes and upgrades legacy plaintext passwords to SHA-256.
+ */
+export async function authenticateTeam(
+  identifier: string,
+  inputPassword: string
+): Promise<{ success: boolean; team?: Team; message?: string }> {
+  const trimmedId = identifier.trim().toLowerCase();
+  const trimmedPass = inputPassword.trim();
+  if (!trimmedId || !trimmedPass) {
+    return { success: false, message: 'Vul a.u.b. zowel team/e-mail als wachtwoord in.' };
+  }
+
+  const teams = getStoredTeams();
+  for (const team of teams) {
+    const matchEmail = team.email.trim().toLowerCase() === trimmedId;
+    const matchName = team.name.trim().toLowerCase() === trimmedId;
+    if (matchEmail || matchName) {
+      const storedPass = team.password || 'Badeend2027';
+      const isValid = await verifyPassword(trimmedPass, storedPass);
+      if (isValid) {
+        // Upgrade legacy plaintext to SHA-256 in database if needed
+        if (!isSha256Hash(storedPass)) {
+          const newHash = await hashPassword(trimmedPass);
+          await updateTeam(team.id, { password: newHash });
+          team.password = newHash;
+        }
+        return { success: true, team };
+      }
+    }
+  }
+
+  return {
+    success: false,
+    message: 'Geen team gevonden met deze combinatie van e-mail/teamnaam en wachtwoord.',
+  };
+}
+
+/**
+ * Authenticates the admin user using SHA-256 verification.
+ */
+export async function authenticateAdmin(
+  email: string,
+  inputPassword: string
+): Promise<boolean> {
+  const matchEmail = email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase();
+  if (!matchEmail) return false;
+  return verifyPassword(inputPassword, ADMIN_CREDENTIALS.password);
 }

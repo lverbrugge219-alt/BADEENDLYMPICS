@@ -274,7 +274,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
                   <li><strong>Naam aanvoerder</strong> (voor communicatie en teamverificatie).</li>
                   <li><strong>E-mailadres aanvoerder</strong> (voor bevestiging en inloggen in het teamportaal).</li>
                   <li><strong>Namen van teamleden (4 personen)</strong> (voor toelating en oorkondes).</li>
-                  <li><strong>Team-wachtwoord</strong> (beveiligd voor toegang tot het persoonlijke teamportaal).</li>
+                  <li><strong>Team-wachtwoord</strong> (veilig eenrichtings-versleuteld opgeslagen middels cryptografische <strong>SHA-256 hashing</strong>; wachtwoorden zijn voor niemand in platte tekst inzichtelijk).</li>
                 </ul>
               </div>
 
@@ -412,7 +412,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
                 <strong>Geen commerciële verkoop:</strong> Wij verkopen, verhuren of delen jouw gegevens onder geen beding met commerciële adverteerders, marketingbureaus of derden.
               </p>
               <p>
-                <strong>Veilige Cloud Hosting:</strong> De website, database (Google Firebase / Firestore) en webservices draaien in gecertificeerde Europese datacenters met SSL-encryptie (HTTPS) en strikte toegangscontrole. Alleen geautoriseerde wedstrijdleiders hebben toegang tot het administratiepaneel.
+                <strong>Veilige Cloud Hosting & Wachtwoord-Hashing:</strong> De website, database (Google Firebase / Firestore) en webservices draaien in gecertificeerde Europese datacenters met SSL-encryptie (HTTPS) en strikte toegangscontrole. Alle teamwachtwoorden worden onomkeerbaar beveiligd met <strong>SHA-256 hashing</strong> via de Web Crypto API voordat ze in de database worden opgeslagen.
               </p>
             </div>
           </section>

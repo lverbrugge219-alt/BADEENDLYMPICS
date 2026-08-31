@@ -100,7 +100,7 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
     setMembers(next);
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -130,7 +130,7 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
       updatedPassword = newPassword;
     }
 
-    const res = updateTeam(currentTeam.id, {
+    const res = await updateTeam(currentTeam.id, {
       name: teamName.toUpperCase(),
       aanvoerder: captainName,
       email: captainEmail,
@@ -363,6 +363,10 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
                           />
                         </div>
                       </div>
+                      <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 pt-1">
+                        <Lock size={12} className="text-emerald-600 shrink-0" />
+                        <span>Nieuwe wachtwoorden worden direct versleuteld met een SHA-256 hash opgeslagen.</span>
+                      </p>
                     </div>
                   )}
                 </div>

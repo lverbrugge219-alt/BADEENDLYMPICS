@@ -40,7 +40,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     setMembers(next);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -70,8 +70,8 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
       return;
     }
 
-    // Save team to database / localStorage
-    const newTeam = saveTeam({
+    // Save team to database / localStorage (password will be automatically SHA-256 hashed)
+    const newTeam = await saveTeam({
       name: teamName.toUpperCase(),
       aanvoerder: captainName,
       email: captainEmail,
@@ -293,6 +293,10 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                       />
                     </div>
                   </div>
+                  <p className="mt-2 text-[11px] text-slate-500 font-medium flex items-center gap-1.5">
+                    <Lock size={12} className="text-emerald-600 shrink-0" />
+                    <span>Wachtwoorden worden cryptografisch beveiligd (SHA-256 hash) opgeslagen.</span>
+                  </p>
                 </div>
 
                 {/* Team Members List (Exact 4) */}

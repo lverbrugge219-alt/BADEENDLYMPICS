@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { PageRoute } from '../types';
 import { ADMIN_CREDENTIALS } from '../data/mockData';
 import {
-  getStoredTeams,
   setAdminSession,
   setTeamSession,
+  authenticateTeam,
+  authenticateAdmin,
 } from '../utils/storage';
 import {
   ShieldAlert,
@@ -43,7 +44,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }, 3500);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
 
@@ -56,10 +57,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     // 1. Check if it's the Admin credentials
-    const isAdminEmail = inputIdentifier === ADMIN_CREDENTIALS.email.toLowerCase();
-    const isAdminPass = inputPassword === ADMIN_CREDENTIALS.password;
+    const isAdminValid = await authenticateAdmin(inputIdentifier, inputPassword);
 
-    if (isAdminEmail && isAdminPass) {
+    if (isAdminValid) {
       setAdminSession(true);
       showToast('Ingelogd als organisatie');
       setTimeout(() => {
@@ -74,18 +74,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // 2. Check Team credentials
-    const teams = getStoredTeams();
-    const matchedTeam = teams.find((t) => {
-      const matchEmail = t.email.trim().toLowerCase() === inputIdentifier;
-      const matchName = t.name.trim().toLowerCase() === inputIdentifier;
-      const matchPass = (t.password || 'Badeend2027') === inputPassword;
-      return (matchEmail || matchName) && matchPass;
-    });
+    // 2. Check Team credentials with SHA-256 verification
+    const authResult = await authenticateTeam(inputIdentifier, inputPassword);
 
-    if (matchedTeam) {
-      setTeamSession(matchedTeam);
-      showToast(`Welkom terug, ${matchedTeam.name}!`);
+    if (authResult.success && authResult.team) {
+      setTeamSession(authResult.team);
+      showToast(`Welkom terug, ${authResult.team.name}!`);
       setTimeout(() => {
         onNavigate('team-portal');
       }, 300);
@@ -93,7 +87,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     setErrorMessage(
-      'Geen team gevonden met deze combinatie van e-mail/teamnaam en wachtwoord. Controleer je gegevens of meld je team aan.'
+      authResult.message ||
+        'Geen team gevonden met deze combinatie van e-mail/teamnaam en wachtwoord. Controleer je gegevens of meld je team aan.'
     );
   };
 
