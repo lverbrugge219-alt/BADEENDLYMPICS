@@ -49,6 +49,7 @@ export type PageRoute =
   | 'login'
   | 'team-portal'
   | 'scorebeheer'
+  | 'privacy'
   | 'spel-geheim-01'
   | 'spel-geheim-02'
   | 'spel-geheim-03'

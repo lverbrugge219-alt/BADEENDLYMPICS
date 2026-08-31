@@ -44,5 +44,18 @@ service cloud.firestore {
       allow update: if isValidId(scoreId) && isValidScore(incoming());
       allow delete: if isValidId(scoreId);
     }
+
+    // Analytics Events Collection (for anonymous cookie usage tracking)
+    match /analytics_events/{eventId} {
+      allow read: if true;
+      allow create: if true;
+      allow delete: if true;
+    }
+
+    // Analytics Summary Collection
+    match /analytics_summary/{summaryId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

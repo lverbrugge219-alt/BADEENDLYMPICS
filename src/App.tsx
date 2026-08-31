@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageRoute, SpelId } from './types';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { CookieBanner } from './components/CookieBanner';
 import { HomePage } from './pages/HomePage';
 import { InfoPage } from './pages/InfoPage';
 import { SchedulePage } from './pages/SchedulePage';
@@ -12,7 +13,9 @@ import { LoginPage } from './pages/LoginPage';
 import { TeamPortalPage } from './pages/TeamPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { SportDetailPage } from './pages/SportDetailPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { initFirestoreSync } from './utils/storage';
+import { trackPageView } from './utils/analytics';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
@@ -22,6 +25,11 @@ export default function App() {
     const cleanup = initFirestoreSync();
     return cleanup;
   }, []);
+
+  useEffect(() => {
+    // Automatically track pageviews via cookies and store metrics
+    trackPageView(currentPage);
+  }, [currentPage]);
 
   const handleNavigate = (route: PageRoute) => {
     if (route === 'scorebeheer') {
@@ -76,6 +84,8 @@ export default function App() {
 
         {currentPage === 'scorebeheer' && <AdminPage onNavigate={handleNavigate} />}
 
+        {currentPage === 'privacy' && <PrivacyPage onNavigate={handleNavigate} />}
+
         {currentPage.startsWith('spel-') && (
           <SportDetailPage
             spelId={getSpelIdFromRoute(currentPage)}
@@ -84,8 +94,12 @@ export default function App() {
         )}
       </main>
 
+      {/* Cookie Consent Banner */}
+      <CookieBanner onNavigate={handleNavigate} />
+
       {/* Footer */}
       <Footer onNavigate={handleNavigate} />
     </div>
   );
 }
+

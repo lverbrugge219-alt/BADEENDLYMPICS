@@ -144,17 +144,43 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('login')}
                   className="text-slate-500 hover:text-amber-400 transition-colors cursor-pointer text-left"
                 >
-                  Organisatie-login
+                  Organisatie-login & Statistieken
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => onNavigate('privacy')}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                >
+                  Privacyverklaring & Cookies
                 </button>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom copyright */}
+        {/* Bottom copyright & Cookie notice */}
         <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-          <div>© 2027 BADEENDLYMPICS</div>
-          <div className="text-slate-400 font-black">QUACK HARD. WIN HARDER.</div>
+          <div>© 2027 BADEENDLYMPICS · PAPENDRECHT</div>
+          <div className="flex items-center gap-4 text-slate-400 font-bold">
+            <button
+              onClick={() => onNavigate('privacy')}
+              className="text-slate-400 hover:text-white underline cursor-pointer"
+            >
+              Privacy
+            </button>
+            <button
+              onClick={() => {
+                document.cookie = 'badeend_consent=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;SameSite=Lax';
+                try { localStorage.removeItem('badeend_consent'); } catch {}
+                window.location.reload();
+              }}
+              className="text-slate-400 hover:text-amber-400 underline cursor-pointer"
+            >
+              Cookie-instellingen
+            </button>
+            <span className="font-black text-amber-400">QUACK HARD. WIN HARDER.</span>
+          </div>
         </div>
       </div>
     </footer>
