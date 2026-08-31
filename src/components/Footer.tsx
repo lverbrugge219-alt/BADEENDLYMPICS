@@ -161,7 +161,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
         {/* Bottom copyright & Cookie notice */}
         <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] font-bold tracking-wider text-slate-500 uppercase">
-          <div>© 2027 BADEENDLYMPICS · PAPENDRECHT</div>
+          <div>© 2026 BADEENDLYMPICS · Scouting van Brederode, Papendrecht</div>
           <div className="flex items-center gap-4 text-slate-400 font-bold">
             <button
               onClick={() => onNavigate('privacy')}
