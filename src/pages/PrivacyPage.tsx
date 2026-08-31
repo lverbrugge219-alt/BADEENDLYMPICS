@@ -139,7 +139,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
                   JOUW COOKIEVOORKEUREN BEHEREN
                 </h3>
                 <p className="text-xs text-slate-700 font-medium">
-                  Beheer direct hoe cookies en geanonimiseerde statistieken op jouw apparaat worden bewaard.
+                  Beheer direct hoe cookies en gepseudonimiseerde statistieken op jouw apparaat worden bewaard.
                 </p>
               </div>
             </div>
