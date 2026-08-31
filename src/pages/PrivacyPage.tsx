@@ -284,7 +284,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
                   WEBSITE- & COOKIEGEGEVENS
                 </h4>
                 <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-700 font-medium">
-                  <li><strong>Geanonimiseerd bezoekers-ID (badeend_uid)</strong> ter berekening van unieke bezoekersaantallen.</li>
+                  <li><strong>Gepseudonimiseerd bezoekers-ID (badeend_uid)</strong> ter berekening van unieke bezoekersaantallen.</li>
                   <li><strong>Sessie-ID (badeend_sid)</strong> om actieve browsersessies te herkennen.</li>
                   <li><strong>Apparaat- & browserkenmerken</strong> (mobiel, tablet of desktop, browsertype en schermresolutie).</li>
                   <li><strong>Paginabezoeken & tijdstempels</strong> (welke pagina’s zoals Dagschema of Leaderboard worden bekeken).</li>
@@ -388,7 +388,7 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
                       Google Analytics (Optioneel)
                     </td>
                     <td className="p-3 text-slate-700 border-r border-slate-200">
-                      Uitsluitend actief indien geconfigureerd door de organisatie. IP-adressen worden hierbij geanonimiseerd.
+                      Uitsluitend actief indien geconfigureerd door de organisatie. IP-adressen worden hierbij gepseudonimiseerd.
                     </td>
                     <td className="p-3 font-bold text-black">2 jaar (standaard GA)</td>
                   </tr>
