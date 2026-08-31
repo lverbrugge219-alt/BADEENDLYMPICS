@@ -13,7 +13,12 @@ import {
 import {
   getAnalyticsStats,
   AnalyticsSummary,
+  SessionDetail,
+  clearAllDatabaseAnalytics,
+  clearAllUserCookiesAndStorage,
+  GA_MEASUREMENT_ID,
 } from '../utils/analytics';
+import { SessionDetailModal } from '../components/SessionDetailModal';
 import {
   Trash2,
   CheckCircle2,
@@ -34,6 +39,16 @@ import {
   Calendar,
   Globe,
   Sparkles,
+  Compass,
+  Search,
+  ArrowRight,
+  Clock,
+  Layers,
+  Filter,
+  ExternalLink,
+  Tag,
+  ChevronRight,
+  ChevronDown,
 } from 'lucide-react';
 
 interface AdminPageProps {
@@ -49,6 +64,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   // Analytics states
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
+  const [sessionSearchQuery, setSessionSearchQuery] = useState('');
+  const [sessionDeviceFilter, setSessionDeviceFilter] = useState<'all' | 'mobile' | 'desktop' | 'tablet'>('all');
+  const [sessionOriginFilter, setSessionOriginFilter] = useState<'all' | 'direct' | 'search' | 'social' | 'external' | 'campaign'>('all');
 
   // Form states
   const [selectedTeamName, setSelectedTeamName] = useState('');
@@ -58,6 +77,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   // Inline delete confirmation states (avoids iframe-blocked window.confirm)
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null);
   const [scoreToDelete, setScoreToDelete] = useState<{ id: string; description: string } | null>(null);
+  const [showClearAnalyticsModal, setShowClearAnalyticsModal] = useState<boolean>(false);
+  const [isClearingAnalytics, setIsClearingAnalytics] = useState<boolean>(false);
 
   // Status & toast
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -68,6 +89,27 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     setTimeout(() => {
       setToastMessage(null);
     }, 3500);
+  };
+
+  const handleClearOwnCookies = () => {
+    clearAllUserCookiesAndStorage();
+    showToast('Eigen cookies en identifiers gewist!');
+    loadAnalytics();
+  };
+
+  const handleClearAllAnalyticsData = async () => {
+    setIsClearingAnalytics(true);
+    try {
+      const res = await clearAllDatabaseAnalytics();
+      setShowClearAnalyticsModal(false);
+      showToast(`Alle statistieken gewist (${res.deletedCount} items)!`);
+      await loadAnalytics();
+    } catch (err) {
+      console.error('Fout bij wissen statistieken:', err);
+      showToast('Fout bij het wissen van de statistieken.');
+    } finally {
+      setIsClearingAnalytics(false);
+    }
   };
 
   const loadAnalytics = async () => {
@@ -530,9 +572,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         {activeTab === 'analytics' && (
           <div className="space-y-8 animate-in fade-in">
             {/* Top Toolbar */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-amber-50 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 p-4 bg-amber-50 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-black">
+                <div className="w-9 h-9 bg-amber-400 border-2 border-black flex items-center justify-center font-black shrink-0">
                   <Cookie size={20} className="text-black" />
                 </div>
                 <div>
@@ -540,19 +582,40 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                     FIRST-PARTY COOKIE & BEZOEKERSANALYTICS
                   </h3>
                   <p className="text-xs text-slate-700 font-medium">
-                    Inzicht in actieve sessies, bezochte pagina’s en apparaten via <code className="bg-white px-1.5 py-0.5 border border-slate-300 font-mono text-[11px]">badeend_uid</code>.
+                    Inzicht in actieve sessies, bezochte pagina’s en herkomstbronnen via <code className="bg-white px-1.5 py-0.5 border border-slate-300 font-mono text-[11px]">badeend_uid</code>.
                   </p>
                 </div>
               </div>
 
-              <button
-                onClick={loadAnalytics}
-                disabled={isLoadingAnalytics}
-                className="px-3.5 py-2 bg-white hover:bg-slate-100 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black flex items-center gap-2 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-              >
-                <RefreshCw size={14} className={isLoadingAnalytics ? 'animate-spin' : ''} />
-                <span>VERNIEUW STATS</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                <button
+                  onClick={loadAnalytics}
+                  disabled={isLoadingAnalytics}
+                  className="px-3 py-2 bg-white hover:bg-slate-100 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                  title="Herlaad statistieken uit de database"
+                >
+                  <RefreshCw size={13} className={isLoadingAnalytics ? 'animate-spin' : ''} />
+                  <span>VERNIEUW STATS</span>
+                </button>
+
+                <button
+                  onClick={handleClearOwnCookies}
+                  className="px-3 py-2 bg-white hover:bg-amber-100 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                  title="Wis cookies en herinitialiseer jouw eigen browsersessie"
+                >
+                  <Cookie size={13} className="text-amber-600" />
+                  <span>EIGEN COOKIES WISSEN</span>
+                </button>
+
+                <button
+                  onClick={() => setShowClearAnalyticsModal(true)}
+                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-rose-700 hover:text-rose-900 flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+                  title="Verwijder alle opgeslagen analytics events uit de database"
+                >
+                  <Trash2 size={13} className="text-rose-600" />
+                  <span>WIS ALLE COOKIEDATA</span>
+                </button>
+              </div>
             </div>
 
             {/* 4 Key Metric Cards */}
@@ -574,19 +637,20 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                 </div>
               </div>
 
-              {/* Card 2: Unique Visitors */}
+              {/* Card 2: Unique Visitors & Sessions */}
               <div className="bg-white border-2 border-black p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between text-slate-500 mb-2">
                   <span className="font-display font-black text-xs uppercase tracking-wider text-black">
-                    UNIEKE BEZOEKERS
+                    BEZOEKERS & SESSIES
                   </span>
                   <Cookie size={18} className="text-sky-500" />
                 </div>
                 <div className="font-display font-black text-4xl sm:text-5xl text-black">
                   {uniqueVisitors}
                 </div>
-                <div className="text-xs text-slate-600 font-semibold mt-2">
-                  Getrackt via <span className="font-mono font-bold text-black">badeend_uid</span> cookie
+                <div className="text-xs text-slate-600 font-semibold mt-2 flex items-center justify-between">
+                  <span>{analytics?.totalSessions || uniqueVisitors} totale sessies</span>
+                  <span className="font-mono text-black font-bold">~{analytics?.avgPagesPerSession || 1} pag/sessie</span>
                 </div>
               </div>
 
@@ -626,6 +690,421 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                   {teams.length * 4} deelnemers geregistreerd
                 </div>
               </div>
+            </div>
+
+            {/* SECTION: WAARVANDAAN BEZOCHT? (VERKEERSBRONNEN & HERKOMST) */}
+            <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6 pb-4 border-b-2 border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-black text-amber-400 border border-black flex items-center justify-center font-black">
+                      <Compass size={18} />
+                    </div>
+                    <h3 className="font-display font-black text-xl uppercase tracking-tight text-black">
+                      WAARVANDAAN BEZOEKEN GEBRUIKERS DE WEBSITE?
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-600 font-semibold mt-1">
+                    Analyse van verwijzende websites, zoekmachines, sociale media, WhatsApp en directe links.
+                  </p>
+                </div>
+
+                <span className="text-xs font-mono font-bold bg-amber-100 border border-amber-300 text-amber-900 px-2.5 py-1 uppercase tracking-wider self-start sm:self-auto">
+                  {Object.keys(analytics?.trafficSources || {}).length} ACTIEVE BRONNEN
+                </span>
+              </div>
+
+              {/* 5 Category Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                {/* 1. Direct */}
+                <div
+                  onClick={() => setSessionOriginFilter(sessionOriginFilter === 'direct' ? 'all' : 'direct')}
+                  className={`p-3 border-2 border-black cursor-pointer transition-all ${
+                    sessionOriginFilter === 'direct'
+                      ? 'bg-amber-400 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5'
+                      : 'bg-slate-50 hover:bg-slate-100'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
+                    <span className="uppercase">DIRECT</span>
+                    <Compass size={14} className="text-slate-800" />
+                  </div>
+                  <div className="font-display font-black text-2xl text-black mt-1">
+                    {analytics?.trafficCategories.direct || 0}
+                  </div>
+                  <div className="text-[10px] text-slate-500 font-medium mt-0.5">
+                    URL / Bladwijzers / QR
+                  </div>
+                </div>
+
+                {/* 2. Zoekmachines */}
+                <div
+                  onClick={() => setSessionOriginFilter(sessionOriginFilter === 'search' ? 'all' : 'search')}
+                  className={`p-3 border-2 border-black cursor-pointer transition-all ${
+                    sessionOriginFilter === 'search'
+                      ? 'bg-blue-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5'
+                      : 'bg-blue-50/70 hover:bg-blue-100/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-blue-900">
+                    <span className="uppercase">ZOEKMACHINES</span>
+                    <Search size={14} className="text-blue-700" />
+                  </div>
+                  <div className="font-display font-black text-2xl text-blue-950 mt-1">
+                    {analytics?.trafficCategories.search || 0}
+                  </div>
+                  <div className="text-[10px] text-blue-700 font-medium mt-0.5">
+                    Google, Bing, etc.
+                  </div>
+                </div>
+
+                {/* 3. Social & Chat */}
+                <div
+                  onClick={() => setSessionOriginFilter(sessionOriginFilter === 'social' ? 'all' : 'social')}
+                  className={`p-3 border-2 border-black cursor-pointer transition-all ${
+                    sessionOriginFilter === 'social'
+                      ? 'bg-emerald-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5'
+                      : 'bg-emerald-50/70 hover:bg-emerald-100/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-emerald-900">
+                    <span className="uppercase">SOCIAL & CHAT</span>
+                    <Globe size={14} className="text-emerald-700" />
+                  </div>
+                  <div className="font-display font-black text-2xl text-emerald-950 mt-1">
+                    {analytics?.trafficCategories.social || 0}
+                  </div>
+                  <div className="text-[10px] text-emerald-700 font-medium mt-0.5">
+                    WhatsApp, Insta, FB
+                  </div>
+                </div>
+
+                {/* 4. Scouting & Externe links */}
+                <div
+                  onClick={() => setSessionOriginFilter(sessionOriginFilter === 'external' ? 'all' : 'external')}
+                  className={`p-3 border-2 border-black cursor-pointer transition-all ${
+                    sessionOriginFilter === 'external'
+                      ? 'bg-purple-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5'
+                      : 'bg-purple-50/70 hover:bg-purple-100/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-purple-900">
+                    <span className="uppercase">VERWIJZERS</span>
+                    <ExternalLink size={14} className="text-purple-700" />
+                  </div>
+                  <div className="font-display font-black text-2xl text-purple-950 mt-1">
+                    {analytics?.trafficCategories.external || 0}
+                  </div>
+                  <div className="text-[10px] text-purple-700 font-medium mt-0.5">
+                    Scouting Papendrecht e.a.
+                  </div>
+                </div>
+
+                {/* 5. Campagnes */}
+                <div
+                  onClick={() => setSessionOriginFilter(sessionOriginFilter === 'campaign' ? 'all' : 'campaign')}
+                  className={`p-3 border-2 border-black cursor-pointer transition-all col-span-2 sm:col-span-1 ${
+                    sessionOriginFilter === 'campaign'
+                      ? 'bg-amber-400 text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] -translate-y-0.5'
+                      : 'bg-amber-50/70 hover:bg-amber-100/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-[11px] font-bold text-amber-900">
+                    <span className="uppercase">CAMPAGNES</span>
+                    <Tag size={14} className="text-amber-700" />
+                  </div>
+                  <div className="font-display font-black text-2xl text-amber-950 mt-1">
+                    {analytics?.trafficCategories.campaign || 0}
+                  </div>
+                  <div className="text-[10px] text-amber-700 font-medium mt-0.5">
+                    UTM & Nieuwsbrieven
+                  </div>
+                </div>
+              </div>
+
+              {/* Specific Source Bars */}
+              <div className="space-y-3">
+                <div className="text-xs font-black uppercase tracking-wider text-slate-500 mb-2">
+                  OVERZICHT HERKOMSTBRONNEN PER SESSIE:
+                </div>
+
+                {Object.keys(analytics?.trafficSources || {}).length === 0 ? (
+                  <div className="text-xs text-slate-500 font-medium py-3 text-center bg-slate-50 border border-black">
+                    Nog geen herkomstbronnen gelogd.
+                  </div>
+                ) : (
+                  Object.entries(analytics?.trafficSources || {})
+                    .sort((a, b) => Number(b[1]) - Number(a[1]))
+                    .map(([sourceName, rawCount]) => {
+                      const count = Number(rawCount);
+                      const totalSess = analytics?.totalSessions || 1;
+                      const pct = Math.round((count / totalSess) * 100);
+                      return (
+                        <div key={sourceName} className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-bold">
+                            <span className="text-black flex items-center gap-1.5">
+                              <Compass size={13} className="text-amber-500 shrink-0" />
+                              <span>{sourceName}</span>
+                            </span>
+                            <span className="font-mono text-slate-600">
+                              {count} {count === 1 ? 'sessie' : 'sessies'} ({pct}%)
+                            </span>
+                          </div>
+                          <div className="w-full h-2.5 bg-slate-100 border border-black overflow-hidden">
+                            <div
+                              className="h-full bg-sky-400 border-r border-black transition-all duration-500"
+                              style={{ width: `${Math.max(pct, 3)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
+            </div>
+
+            {/* SECTION: SESSIE-VERKENNER & DOORKLIKKEN NAAR BEZOCHTE PAGINA'S */}
+            <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b-2 border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-amber-400 border border-black flex items-center justify-center font-black">
+                      <Layers size={18} className="text-black" />
+                    </div>
+                    <h3 className="font-display font-black text-xl uppercase tracking-tight text-black">
+                      SESSIES & DOORKLIKKEN: BEZOCHTE PAGINA’S PER SESSIE
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-600 font-semibold mt-1">
+                    Klik op een willekeurige sessie om het volledige chronologische paginapad, herkomst en tijdsduur te bekijken.
+                  </p>
+                </div>
+
+                <div className="text-xs font-mono font-bold text-slate-500 shrink-0">
+                  TOTAAL {analytics?.sessions?.length || 0} SESSIES
+                </div>
+              </div>
+
+              {/* Filters & Search Toolbar */}
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 mb-6">
+                {/* Search input */}
+                <div className="relative flex-1">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={sessionSearchQuery}
+                    onChange={(e) => setSessionSearchQuery(e.target.value)}
+                    placeholder="Zoek op sessie ID, bezoeker ID, paginanaam of herkomst..."
+                    className="w-full pl-9 pr-4 py-2 bg-slate-50 border-2 border-black text-xs font-medium focus:bg-white focus:outline-hidden focus:border-amber-500"
+                  />
+                  {sessionSearchQuery && (
+                    <button
+                      onClick={() => setSessionSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 hover:text-black"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+
+                {/* Device Filter */}
+                <div className="flex items-center gap-1 border-2 border-black p-1 bg-slate-100 shrink-0">
+                  {(['all', 'desktop', 'mobile', 'tablet'] as const).map((dev) => (
+                    <button
+                      key={dev}
+                      onClick={() => setSessionDeviceFilter(dev)}
+                      className={`px-2.5 py-1 text-[11px] font-display font-black uppercase transition-all cursor-pointer ${
+                        sessionDeviceFilter === dev
+                          ? 'bg-black text-amber-400 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]'
+                          : 'text-slate-600 hover:text-black'
+                      }`}
+                    >
+                      {dev === 'all' ? 'Alle' : dev}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Origin Filter Pill */}
+                {sessionOriginFilter !== 'all' && (
+                  <button
+                    onClick={() => setSessionOriginFilter('all')}
+                    className="px-2.5 py-2 bg-amber-400 border-2 border-black font-display font-black text-xs uppercase flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <span>Filter: {sessionOriginFilter}</span>
+                    <span className="font-mono">✕</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Filtered Sessions List */}
+              {(() => {
+                const sessionsList = (analytics?.sessions || []).filter((s) => {
+                  // Device filter
+                  if (sessionDeviceFilter !== 'all' && s.device !== sessionDeviceFilter) {
+                    return false;
+                  }
+                  // Origin filter
+                  if (sessionOriginFilter !== 'all' && s.origin.category !== sessionOriginFilter) {
+                    return false;
+                  }
+                  // Search query filter
+                  if (sessionSearchQuery.trim()) {
+                    const q = sessionSearchQuery.toLowerCase();
+                    const matchId = s.sessionId.toLowerCase().includes(q) || s.visitorId.toLowerCase().includes(q);
+                    const matchOrigin = (s.origin.sourceName || '').toLowerCase().includes(q) ||
+                      (s.origin.hostname || '').toLowerCase().includes(q);
+                    const matchPages = s.steps.some(
+                      (st) =>
+                        st.page.toLowerCase().includes(q) ||
+                        getPageDisplayName(st.page).toLowerCase().includes(q)
+                    );
+                    return matchId || matchOrigin || matchPages;
+                  }
+                  return true;
+                });
+
+                if (sessionsList.length === 0) {
+                  return (
+                    <div className="p-8 bg-slate-50 border-2 border-black text-center">
+                      <div className="w-10 h-10 bg-white border border-black flex items-center justify-center mx-auto mb-2 font-bold">
+                        <Search size={18} className="text-slate-400" />
+                      </div>
+                      <div className="font-display font-black text-sm uppercase text-black">
+                        GEEN SESSIES GEVONDEN
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Er zijn geen sessies die voldoen aan de huidige zoekfilters.
+                      </p>
+                      {(sessionSearchQuery || sessionDeviceFilter !== 'all' || sessionOriginFilter !== 'all') && (
+                        <button
+                          onClick={() => {
+                            setSessionSearchQuery('');
+                            setSessionDeviceFilter('all');
+                            setSessionOriginFilter('all');
+                          }}
+                          className="mt-3 px-3 py-1.5 bg-black text-amber-400 border border-black font-display font-black text-xs uppercase cursor-pointer"
+                        >
+                          FILTERS WISSEN
+                        </button>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-4">
+                    <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                      <span>TOONT {sessionsList.length} SESSIE{sessionsList.length === 1 ? '' : 'S'}</span>
+                      <span>KLIK OP EEN SESSIE VOOR VOLLEDIG PAGINAPAD</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3.5 max-h-[600px] overflow-y-auto pr-1">
+                      {sessionsList.map((sess) => {
+                        const startTimeFormatted = sess.startTime
+                          ? new Date(sess.startTime).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '-';
+                        const dateFormatted = sess.startTime
+                          ? new Date(sess.startTime).toLocaleDateString('nl-NL', {
+                              day: 'numeric',
+                              month: 'short',
+                            })
+                          : '';
+
+                        const durationStr =
+                          sess.durationSeconds < 60
+                            ? `${sess.durationSeconds}s`
+                            : `${Math.floor(sess.durationSeconds / 60)}m ${sess.durationSeconds % 60}s`;
+
+                        return (
+                          <div
+                            key={sess.sessionId}
+                            onClick={() => setSelectedSession(sess)}
+                            className="bg-slate-50 hover:bg-amber-50/50 border-2 border-black p-4 transition-all cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group"
+                          >
+                            {/* Card Top Row: Origin, Device, Time */}
+                            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                {/* Origin Pill */}
+                                <span className="inline-flex items-center gap-1 bg-white border border-black px-2 py-0.5 text-xs font-black text-black">
+                                  <Compass size={12} className="text-amber-600 shrink-0" />
+                                  <span>{sess.origin.sourceName}</span>
+                                </span>
+
+                                {/* Device Pill */}
+                                <span className="inline-flex items-center gap-1 bg-white border border-slate-300 px-2 py-0.5 text-[11px] font-bold text-slate-700 capitalize">
+                                  {sess.device === 'mobile' ? (
+                                    <Smartphone size={11} className="text-emerald-600" />
+                                  ) : sess.device === 'tablet' ? (
+                                    <Tablet size={11} className="text-sky-600" />
+                                  ) : (
+                                    <Monitor size={11} className="text-purple-600" />
+                                  )}
+                                  <span>{sess.device}</span>
+                                </span>
+
+                                <span className="font-mono text-[11px] text-slate-500">
+                                  ID: {sess.sessionId.substring(0, 10)}...
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-3 text-xs font-mono text-slate-600">
+                                <span className="font-bold text-black">{dateFormatted} {startTimeFormatted}</span>
+                                <span className="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 text-[11px]">
+                                  {durationStr}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Card Middle: Interactive Breadcrumb Path Preview */}
+                            <div className="mb-3">
+                              <div className="text-[10px] font-black uppercase text-slate-400 mb-1">
+                                BEZOCHTE PAGINA’S ({sess.pageCount} WEERGAVEN):
+                              </div>
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {sess.steps.slice(0, 5).map((st, sIdx) => (
+                                  <React.Fragment key={sIdx}>
+                                    <span className="inline-flex items-center gap-1 bg-white border border-black px-2 py-1 text-xs font-bold text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                                      <span className="text-slate-400 text-[10px]">{sIdx + 1}.</span>
+                                      <span>{getPageDisplayName(st.page)}</span>
+                                    </span>
+                                    {sIdx < Math.min(sess.steps.length - 1, 4) && (
+                                      <ArrowRight size={12} className="text-slate-400 shrink-0" />
+                                    )}
+                                  </React.Fragment>
+                                ))}
+
+                                {sess.steps.length > 5 && (
+                                  <span className="bg-black text-amber-400 px-2 py-0.5 text-xs font-black font-mono">
+                                    +{sess.steps.length - 5} meer
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Card Bottom Row: Action button */}
+                            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-xs">
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                Instap: <strong className="text-black font-bold">{getPageDisplayName(sess.landingPage)}</strong>
+                                {sess.steps.length > 1 && (
+                                  <> · Uitstap: <strong className="text-black font-bold">{getPageDisplayName(sess.exitPage)}</strong></>
+                                )}
+                              </span>
+
+                              <div className="font-display font-black text-xs uppercase text-black group-hover:text-amber-700 flex items-center gap-1">
+                                <span>BEKIJK TIJDLIJN & DOORKLIKKEN</span>
+                                <ChevronRight size={14} />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Middle Section: Popular Pages & Realtime Feed */}
@@ -727,25 +1206,161 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
               </div>
             </div>
 
-            {/* Google Analytics (GA4) / Tag Info Box */}
-            <div className="p-6 bg-slate-50 border-2 border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 bg-black text-amber-400 border-2 border-black flex items-center justify-center shrink-0">
-                  <Globe size={20} />
+            {/* Google Analytics (GA4) / Tag Info Box & Measurement ID Guide */}
+            <div className="p-6 sm:p-8 bg-slate-50 border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4 pb-4 border-b-2 border-slate-200 mb-5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-black text-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <Globe size={22} />
+                  </div>
+                  <div>
+                    <h4 className="font-display font-black text-lg uppercase text-black">
+                      GOOGLE ANALYTICS 4 (GA4) INTEGRATIE
+                    </h4>
+                    <p className="text-xs text-slate-600 font-medium">
+                      Optioneel koppelen met jouw Google Analytics property via de Measurement ID.
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-display font-black text-base uppercase text-black">
-                    OPTIONEEL: GOOGLE ANALYTICS (GA4) KOPPELEN
-                  </h4>
-                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                    Naast de ingebouwde first-party cookie-statistieken kun je een Google Analytics 4 Measurement ID toevoegen (zoals <code className="font-mono bg-white px-1 border border-slate-300">G-XXXXXXXXXX</code> in <code className="font-mono">.env.example</code> als <code className="font-mono">VITE_GA_MEASUREMENT_ID</code>). De app stuurt dan automatisch geanonimiseerde bezoeken door naar jouw Google Analytics dashboard.
-                  </p>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-bold uppercase text-slate-500">Status:</span>
+                  {GA_MEASUREMENT_ID ? (
+                    <span className="bg-emerald-100 border border-emerald-300 text-emerald-900 font-mono text-xs font-bold px-2.5 py-1 flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                      <span>GEKOPPELD ({GA_MEASUREMENT_ID})</span>
+                    </span>
+                  ) : (
+                    <span className="bg-amber-100 border border-amber-300 text-amber-900 font-mono text-xs font-bold px-2.5 py-1">
+                      GEEN METINGS-ID INGESTELD
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Step-by-step guide to finding GA4 Measurement ID */}
+              <div className="space-y-4">
+                <div className="text-xs font-display font-black uppercase tracking-wider text-black flex items-center gap-1.5">
+                  <Search size={14} className="text-amber-500" />
+                  <span>HOE VIND JE JOUW GOOGLE ANALYTICS 4 MEASUREMENT ID? (STAPPENPLAN)</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="w-6 h-6 bg-amber-400 border border-black font-display font-black text-xs flex items-center justify-center mb-2">
+                      1
+                    </div>
+                    <div className="font-bold text-black uppercase mb-1">Open Google Analytics</div>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Ga naar <a href="https://analytics.google.com" target="_blank" rel="noreferrer" className="text-sky-600 underline font-bold">analytics.google.com</a> en log in met het Google-account van Scouting/Badeendlympics.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="w-6 h-6 bg-amber-400 border border-black font-display font-black text-xs flex items-center justify-center mb-2">
+                      2
+                    </div>
+                    <div className="font-bold text-black uppercase mb-1">Beheerder (Admin)</div>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Klik linksonder op het tandwiel-icoon <strong>Beheerder (Admin)</strong> en kies de juiste Property.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="w-6 h-6 bg-amber-400 border border-black font-display font-black text-xs flex items-center justify-center mb-2">
+                      3
+                    </div>
+                    <div className="font-bold text-black uppercase mb-1">Gegevensstreams</div>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Klik onder <em>Gegevensverzameling</em> op <strong>Gegevensstreams (Data Streams)</strong> en kies het tabblad <strong>Web</strong>.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <div className="w-6 h-6 bg-black text-amber-400 border border-black font-display font-black text-xs flex items-center justify-center mb-2">
+                      4
+                    </div>
+                    <div className="font-bold text-black uppercase mb-1">Metings-ID (G-...)</div>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Klik op jouw stream. Rechtsboven staat de <strong>Metings-ID</strong> (begint met <code className="bg-slate-100 font-mono font-bold px-1">G-XXXXXXXXXX</code>).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-3 p-3 bg-amber-100/70 border border-black text-xs font-medium text-amber-950 flex items-start gap-2">
+                  <Sparkles size={16} className="text-amber-700 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Instellen in de app:</strong> Voeg de omgevingsvariabele <code className="bg-white px-1.5 py-0.5 border border-amber-300 font-mono font-bold">VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX</code> toe in jouw instellingen of <code className="font-mono">.env</code> bestand. Zodra een bezoeker cookies accepteert, wordt GA4 automatisch geactiveerd.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Interactive Session Detail Modal */}
+      {selectedSession && (
+        <SessionDetailModal
+          session={selectedSession}
+          allSessions={analytics?.sessions || []}
+          onClose={() => setSelectedSession(null)}
+          onSelectSession={(sess) => setSelectedSession(sess)}
+          getPageDisplayName={getPageDisplayName}
+        />
+      )}
+
+      {/* Confirmation Modal: Clear all analytics data from database */}
+      {showClearAnalyticsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+          <div className="bg-white border-2 border-black p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95">
+            <div className="flex items-center gap-3 text-rose-600 mb-4">
+              <div className="w-10 h-10 bg-rose-100 border-2 border-black flex items-center justify-center font-black shrink-0">
+                <Trash2 size={20} className="text-rose-600" />
+              </div>
+              <h3 className="font-display font-black text-lg sm:text-xl uppercase text-black">
+                ALLE COOKIEDATA & STATISTIEKEN WISSEN?
+              </h3>
+            </div>
+
+            <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed mb-6">
+              Weet je zeker dat je alle gelogde cookie-bezoeken, sessiepaden en statistieken wilt verwijderen uit de database?
+              <br />
+              <br />
+              <strong className="text-black">Let op:</strong> Alle tellers (paginaweergaven, unieke bezoekers en sessies) worden hierdoor gereset naar 0.
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setShowClearAnalyticsModal(false)}
+                disabled={isClearingAnalytics}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black cursor-pointer transition-all"
+              >
+                ANNULEREN
+              </button>
+              <button
+                type="button"
+                onClick={handleClearAllAnalyticsData}
+                disabled={isClearingAnalytics}
+                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 border-2 border-black text-white font-display font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer flex items-center gap-2 transition-all"
+              >
+                {isClearingAnalytics ? (
+                  <>
+                    <RefreshCw size={14} className="animate-spin" />
+                    <span>WISSEN BEZIG...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={14} />
+                    <span>JA, WIS ALLE STATISTIEKEN</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Toast at Bottom Right */}
       {toastMessage && (

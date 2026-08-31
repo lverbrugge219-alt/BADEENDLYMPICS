@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Cookie, ShieldCheck, Check, Info, FileText } from 'lucide-react';
+import { Cookie, ShieldCheck, Check, Info, FileText, Trash2 } from 'lucide-react';
 import { PageRoute } from '../types';
-import { getCookieConsent, setCookieConsent, initGoogleAnalytics } from '../utils/analytics';
+import {
+  getCookieConsent,
+  setCookieConsent,
+  initGoogleAnalytics,
+  clearAllUserCookiesAndStorage,
+} from '../utils/analytics';
 
 interface CookieBannerProps {
   onNavigate?: (page: PageRoute) => void;
@@ -88,10 +93,19 @@ export const CookieBanner: React.FC<CookieBannerProps> = ({ onNavigate }) => {
                 <strong className="text-black">badeend_consent</strong>: Onthoudt jouw cookie-keuze.
               </li>
             </ul>
-            <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-              <span className="text-[10px] text-slate-500">
-                Geen commerciële advertentietracking.
-              </span>
+            <div className="flex items-center justify-between pt-1.5 border-t border-slate-200 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  clearAllUserCookiesAndStorage();
+                  setShowBanner(false);
+                }}
+                className="text-[10px] font-bold text-rose-600 hover:text-rose-800 flex items-center gap-1 cursor-pointer"
+                title="Wis direct alle cookies en identifiers"
+              >
+                <Trash2 size={10} />
+                <span>Cookies wissen</span>
+              </button>
               {onNavigate && (
                 <button
                   type="button"

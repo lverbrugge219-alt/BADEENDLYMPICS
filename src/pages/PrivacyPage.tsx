@@ -22,6 +22,7 @@ import {
   setCookieConsent,
   deleteCookie,
   initGoogleAnalytics,
+  clearAllUserCookiesAndStorage,
 } from '../utils/analytics';
 
 interface PrivacyPageProps {
@@ -61,18 +62,9 @@ export const PrivacyPage: React.FC<PrivacyPageProps> = ({ onNavigate }) => {
   };
 
   const handleResetCookies = () => {
-    deleteCookie('badeend_uid');
-    deleteCookie('badeend_sid');
-    deleteCookie('badeend_consent');
-    try {
-      localStorage.removeItem('badeend_uid');
-      localStorage.removeItem('badeend_consent');
-      localStorage.removeItem('badeend_local_analytics_v1');
-    } catch {
-      // ignore
-    }
+    clearAllUserCookiesAndStorage();
     updateCookieStatus();
-    showFeedback('Alle Badeendlympics cookies & lokale statistieken zijn gewist.');
+    showFeedback('Alle Badeendlympics cookies, Google Analytics cookies & lokale data zijn succesvol gewist!');
   };
 
   const showFeedback = (msg: string) => {
