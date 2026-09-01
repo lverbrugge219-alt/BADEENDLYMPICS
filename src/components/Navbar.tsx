@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { PageRoute, Team } from '../types';
+import { PageRoute, Team, JuryMember } from '../types';
 import { BADEEND_LOGO_SRC } from '../assets/logo';
-import { getAdminSession, getTeamSession } from '../utils/storage';
-import { Menu, X, ShieldAlert, Lock, UserCheck } from 'lucide-react';
+import { getAdminSession, getTeamSession, getJurySession } from '../utils/storage';
+import { Menu, X, ShieldAlert, Lock, UserCheck, Award } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: PageRoute;
   onNavigate: (page: PageRoute) => void;
-  onNavigateLoginWithTab?: (page: PageRoute, tab: 'team' | 'organisatie') => void;
+  onNavigateLoginWithTab?: (page: PageRoute, tab: 'team' | 'jury' | 'organisatie') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -18,10 +18,12 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeTeam, setActiveTeam] = useState<Team | null>(null);
+  const [activeJury, setActiveJury] = useState<JuryMember | null>(null);
 
   const checkAuth = () => {
     setIsAdmin(getAdminSession());
     setActiveTeam(getTeamSession());
+    setActiveJury(getJurySession());
   };
 
   useEffect(() => {
@@ -39,16 +41,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     { label: 'INFO', page: 'info' },
     { label: 'SCHEMA', page: 'schema' },
     { label: 'SCORES', page: 'scores' },
+    { label: 'JURY', page: 'jury' },
     { label: 'DEELNEMERS', page: 'deelnemers' },
   ];
 
   const isCurrent = (page: PageRoute) => {
     if (page === 'scores' && currentPage === 'scorebeheer') return false;
     if (page === 'home' && currentPage.startsWith('spel-')) return false;
+    if (page === 'jury' && (currentPage === 'jury-aanmelden' || currentPage === 'jury-portal')) return true;
     return currentPage === page;
   };
 
-  const handleLoginClick = (tab: 'team' | 'organisatie') => {
+  const handleLoginClick = (tab: 'team' | 'jury' | 'organisatie') => {
     if (onNavigateLoginWithTab) {
       onNavigateLoginWithTab('login', tab);
     } else {
@@ -72,7 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="font-display font-black text-xl sm:text-2xl tracking-tighter text-black uppercase">
+            <span className="font-display font-black text-lg sm:text-2xl tracking-tighter text-black uppercase">
               BADEEND<span className="text-black">LYMPICS</span>{' '}
               <span className="text-amber-500 font-display font-black">2027</span>
             </span>
@@ -86,7 +90,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={item.page}
                   onClick={() => onNavigate(item.page)}
-                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  className={`px-2.5 lg:px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${
                     active
                       ? 'bg-black text-white'
                       : 'text-black hover:bg-slate-100'
@@ -108,7 +112,19 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }`}
               >
                 <ShieldAlert size={14} className="text-amber-400" />
-                SCOREBEHEER
+                BEHEER
+              </button>
+            ) : activeJury ? (
+              <button
+                onClick={() => onNavigate('jury-portal')}
+                className={`px-3 py-1.5 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  currentPage === 'jury-portal'
+                    ? 'bg-black text-amber-400'
+                    : 'bg-amber-100 text-black hover:bg-amber-200'
+                }`}
+              >
+                <Award size={14} className="text-amber-600" />
+                MIJN JURY
               </button>
             ) : activeTeam ? (
               <button
@@ -139,7 +155,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Inschrijven Yellow Button */}
             <button
               onClick={() => onNavigate('inschrijven')}
-              className={`ml-1 px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none ${
+              className={`ml-1 px-3.5 lg:px-4 py-2 border-2 border-black text-xs font-black uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-none ${
                 currentPage === 'inschrijven'
                   ? 'bg-black text-amber-400 border-black'
                   : 'bg-amber-400 text-black hover:bg-amber-300'
@@ -186,7 +202,21 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           ))}
 
-          {/* Mobile Team or Admin link */}
+          {/* Mobile Jury, Team or Admin link */}
+          {activeJury && (
+            <button
+              onClick={() => {
+                onNavigate('jury-portal');
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm font-black uppercase tracking-wider flex items-center gap-2 ${
+                currentPage === 'jury-portal' ? 'bg-black text-white' : 'text-amber-700 bg-amber-50'
+              }`}
+            >
+              <Award size={16} /> MIJN JURYPROFIEL: {activeJury.name}
+            </button>
+          )}
+
           {activeTeam && (
             <button
               onClick={() => {
@@ -211,11 +241,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 currentPage === 'scorebeheer' ? 'bg-black text-white' : 'text-sky-600 bg-sky-50'
               }`}
             >
-              <ShieldAlert size={16} /> SCOREBEHEER (ORGANISATIE)
+              <ShieldAlert size={16} /> SCOREBEHEER & JURY (ORGANISATIE)
             </button>
           )}
 
-          {!isAdmin && !activeTeam && (
+          {!isAdmin && !activeTeam && !activeJury && (
             <button
               onClick={() => {
                 handleLoginClick('team');
@@ -223,7 +253,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }}
               className="w-full text-left px-3 py-2 text-sm font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 flex items-center gap-2"
             >
-              <Lock size={15} /> INLOGGEN (TEAM / ORGANISATIE)
+              <Lock size={15} /> INLOGGEN (TEAM / JURY / ORGANISATIE)
             </button>
           )}
 

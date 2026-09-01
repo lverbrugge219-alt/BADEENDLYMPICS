@@ -29,6 +29,11 @@ service cloud.firestore {
              data.points is number && data.points >= 0 && data.points <= 10000;
     }
 
+    function isValidJuryMember(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.email is string && data.email.size() > 0 && data.email.size() <= 150;
+    }
+
     // Teams Collection
     match /teams/{teamId} {
       allow read: if true;
@@ -43,6 +48,14 @@ service cloud.firestore {
       allow create: if isValidId(scoreId) && isValidScore(incoming());
       allow update: if isValidId(scoreId) && isValidScore(incoming());
       allow delete: if isValidId(scoreId);
+    }
+
+    // Jury Members Collection
+    match /jury_members/{juryId} {
+      allow read: if true;
+      allow create: if isValidId(juryId) && isValidJuryMember(incoming());
+      allow update: if isValidId(juryId) && isValidJuryMember(incoming());
+      allow delete: if isValidId(juryId);
     }
 
     // Analytics Events Collection (for anonymous cookie usage tracking)

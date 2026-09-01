@@ -14,12 +14,14 @@ import { TeamPortalPage } from './pages/TeamPortalPage';
 import { AdminPage } from './pages/AdminPage';
 import { SportDetailPage } from './pages/SportDetailPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { JuryPage } from './pages/JuryPage';
+import { JuryPortalPage } from './pages/JuryPortalPage';
 import { initFirestoreSync } from './utils/storage';
 import { trackPageView } from './utils/analytics';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageRoute>('home');
-  const [loginInitialTab, setLoginInitialTab] = useState<'team' | 'organisatie'>('team');
+  const [loginInitialTab, setLoginInitialTab] = useState<'team' | 'jury' | 'organisatie'>('team');
 
   useEffect(() => {
     const cleanup = initFirestoreSync();
@@ -32,14 +34,11 @@ export default function App() {
   }, [currentPage]);
 
   const handleNavigate = (route: PageRoute) => {
-    if (route === 'scorebeheer') {
-      // If user is trying to access scorebeheer directly from non-admin, LoginPage handles or AdminPage checks
-    }
     setCurrentPage(route);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleNavigateWithTab = (route: PageRoute, tab: 'team' | 'organisatie') => {
+  const handleNavigateWithTab = (route: PageRoute, tab: 'team' | 'jury' | 'organisatie') => {
     setLoginInitialTab(tab);
     handleNavigate(route);
   };
@@ -72,6 +71,16 @@ export default function App() {
 
         {currentPage === 'scores' && <LeaderboardPage onNavigate={handleNavigate} />}
 
+        {currentPage === 'jury' && (
+          <JuryPage onNavigate={handleNavigate} openSignUpInitially={false} />
+        )}
+
+        {currentPage === 'jury-aanmelden' && (
+          <JuryPage onNavigate={handleNavigate} openSignUpInitially={true} />
+        )}
+
+        {currentPage === 'jury-portal' && <JuryPortalPage onNavigate={handleNavigate} />}
+
         {currentPage === 'deelnemers' && <ParticipantsPage onNavigate={handleNavigate} />}
 
         {currentPage === 'inschrijven' && <SignUpPage onNavigate={handleNavigate} />}
@@ -102,4 +111,3 @@ export default function App() {
     </div>
   );
 }
-

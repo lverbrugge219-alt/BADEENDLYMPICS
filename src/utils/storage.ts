@@ -6,18 +6,22 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Team, ScoreEntry, SpelId } from '../types';
+import { Team, ScoreEntry, SpelId, JuryMember } from '../types';
 import { SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
+import { DEFAULT_JURY_MEMBERS } from '../data/juryAvatars';
 import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
 
 const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
 const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
+const JURY_STORAGE_KEY = 'badeendlympics_jury_v1';
 const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
 const TEAM_SESSION_KEY = 'badeendlympics_team_session';
+const JURY_SESSION_KEY = 'badeendlympics_jury_session';
 
 // In-memory cache for fast synchronous access
 let cachedTeams: Team[] = [];
 let cachedScores: ScoreEntry[] = [];
+let cachedJury: JuryMember[] = [];
 let isFirestoreInitialized = false;
 
 // Load initial local data without hardcoded dummy entries
@@ -35,6 +39,13 @@ function initLocalCache() {
   } catch {
     cachedScores = [];
   }
+
+  try {
+    const rawJury = localStorage.getItem(JURY_STORAGE_KEY);
+    cachedJury = rawJury ? JSON.parse(rawJury) : DEFAULT_JURY_MEMBERS;
+  } catch {
+    cachedJury = DEFAULT_JURY_MEMBERS;
+  }
 }
 
 initLocalCache();
@@ -49,6 +60,10 @@ export function getStoredTeams(): Team[] {
 
 export function getStoredScores(): ScoreEntry[] {
   return cachedScores;
+}
+
+export function getStoredJuryMembers(): JuryMember[] {
+  return cachedJury;
 }
 
 export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team[] {
@@ -91,6 +106,7 @@ export function initFirestoreSync() {
 
   const teamsCollection = collection(db, 'teams');
   const scoresCollection = collection(db, 'scores');
+  const juryCollection = collection(db, 'jury_members');
 
   // Real-time listener for Teams from Firestore
   const unsubscribeTeams = onSnapshot(
@@ -137,10 +153,54 @@ export function initFirestoreSync() {
     }
   );
 
+  // Real-time listener for Jury Members from Firestore
+  const unsubscribeJury = onSnapshot(
+    juryCollection,
+    (snapshot) => {
+      const liveJury: JuryMember[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as JuryMember;
+        liveJury.push({
+          ...data,
+          id: docSnap.id,
+        });
+      });
+
+      if (liveJury.length > 0) {
+        cachedJury = liveJury;
+        localStorage.setItem(JURY_STORAGE_KEY, JSON.stringify(liveJury));
+      } else if (cachedJury.length === 0) {
+        cachedJury = DEFAULT_JURY_MEMBERS;
+        localStorage.setItem(JURY_STORAGE_KEY, JSON.stringify(DEFAULT_JURY_MEMBERS));
+      }
+      window.dispatchEvent(new Event('badeendlympics_data_change'));
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.GET, 'jury_members');
+    }
+  );
+
   return () => {
     unsubscribeTeams();
     unsubscribeScores();
+    unsubscribeJury();
   };
+}
+
+// Helper to strip undefined fields recursively because Firestore reject undefined values
+export function sanitizeForFirestore<T extends Record<string, any>>(obj: T): T {
+  const clean: any = {};
+  Object.keys(obj).forEach((key) => {
+    const val = obj[key];
+    if (val !== undefined) {
+      if (val !== null && typeof val === 'object' && !Array.isArray(val)) {
+        clean[key] = sanitizeForFirestore(val);
+      } else {
+        clean[key] = val;
+      }
+    }
+  });
+  return clean;
 }
 
 export async function saveTeam(
@@ -176,9 +236,12 @@ export async function saveTeam(
   window.dispatchEvent(new Event('badeendlympics_data_change'));
 
   // 2. Persist to Firestore
-  setDoc(doc(db, 'teams', newTeamId), newTeam).catch((error) => {
+  try {
+    const cleanData = sanitizeForFirestore(newTeam);
+    await setDoc(doc(db, 'teams', newTeamId), cleanData);
+  } catch (error) {
     handleFirestoreError(error, OperationType.CREATE, `teams/${newTeamId}`);
-  });
+  }
 
   return newTeam;
 }
@@ -220,7 +283,7 @@ export async function updateTeam(
     cachedScores = cachedScores.map((s) => {
       if (s.teamId === teamId || s.teamName.trim().toLowerCase() === oldName.trim().toLowerCase()) {
         const updatedScore = { ...s, teamId, teamName: newName };
-        setDoc(doc(db, 'scores', s.id), updatedScore, { merge: true }).catch((err) => {
+        setDoc(doc(db, 'scores', s.id), sanitizeForFirestore(updatedScore), { merge: true }).catch((err) => {
           handleFirestoreError(err, OperationType.UPDATE, `scores/${s.id}`);
         });
         return updatedScore;
@@ -231,9 +294,12 @@ export async function updateTeam(
   }
 
   // Persist to Firestore
-  setDoc(doc(db, 'teams', teamId), updatedTeam, { merge: true }).catch((error) => {
+  try {
+    const cleanData = sanitizeForFirestore(updatedTeam);
+    await setDoc(doc(db, 'teams', teamId), cleanData, { merge: true });
+  } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `teams/${teamId}`);
-  });
+  }
 
   // Also update active session if this team is logged in
   const activeTeamdirect = getTeamSession();
@@ -334,9 +400,14 @@ export function saveOrUpdateScore(
   localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify(cachedScores));
 
   // Persist to Firestore
-  setDoc(doc(db, 'scores', resultEntry.id), resultEntry).catch((error) => {
-    handleFirestoreError(error, OperationType.WRITE, `scores/${resultEntry.id}`);
-  });
+  try {
+    const cleanScore = sanitizeForFirestore(resultEntry);
+    setDoc(doc(db, 'scores', resultEntry.id), cleanScore).catch((error) => {
+      handleFirestoreError(error, OperationType.WRITE, `scores/${resultEntry.id}`);
+    });
+  } catch (err) {
+    console.error('Error saving score to Firestore:', err);
+  }
 
   window.dispatchEvent(new Event('badeendlympics_data_change'));
   return resultEntry;
@@ -421,6 +492,187 @@ export function setTeamSession(team: Team | null): void {
 export function logoutAll(): void {
   setAdminSession(false);
   setTeamSession(null);
+  setJurySession(null);
+}
+
+export function getJurySession(): JuryMember | null {
+  try {
+    const raw = localStorage.getItem(JURY_SESSION_KEY);
+    if (!raw) return null;
+    const sessionJury: JuryMember = JSON.parse(raw);
+    const fresh = cachedJury.find((j) => j.id === sessionJury.id);
+    return fresh || sessionJury;
+  } catch {
+    return null;
+  }
+}
+
+export function setJurySession(jury: JuryMember | null): void {
+  try {
+    if (jury) {
+      localStorage.setItem(JURY_SESSION_KEY, JSON.stringify(jury));
+    } else {
+      localStorage.removeItem(JURY_SESSION_KEY);
+    }
+    window.dispatchEvent(new Event('badeendlympics_auth_change'));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+// --- JURY OPERATIONS ---
+
+export async function saveJuryMember(
+  juryData: Omit<JuryMember, 'id' | 'registeredAt'>
+): Promise<JuryMember> {
+  const newJuryId = `jury-${Date.now()}`;
+  const rawPassword = juryData.password || 'JuryBadeend2027';
+  const hashedPassword = isSha256Hash(rawPassword)
+    ? rawPassword
+    : await hashPassword(rawPassword);
+
+  const newJury: JuryMember = {
+    id: newJuryId,
+    name: juryData.name.trim(),
+    email: juryData.email.trim().toLowerCase(),
+    password: hashedPassword,
+    isHeadJury: Boolean(juryData.isHeadJury),
+    isOrganizer: Boolean(juryData.isOrganizer),
+    bioQuote: juryData.bioQuote ? juryData.bioQuote.trim() : 'Klaar voor de Badeendlympics 2027!',
+    scoutingAffiliation: juryData.scoutingAffiliation ? juryData.scoutingAffiliation.trim() : 'Scouting',
+    avatarType: juryData.avatarType || 'preset',
+    avatarPresetId: juryData.avatarType === 'preset' ? (juryData.avatarPresetId || 'duck-referee') : undefined,
+    photoUrl: juryData.avatarType === 'custom' && juryData.photoUrl ? juryData.photoUrl : undefined,
+    status: juryData.status || 'active',
+    registeredAt: new Date().toISOString(),
+    favoriteSpel: juryData.favoriteSpel || 'all',
+  };
+
+  // 1. Update local cache immediately
+  cachedJury = [newJury, ...cachedJury.filter((j) => j.id !== newJuryId)];
+  localStorage.setItem(JURY_STORAGE_KEY, JSON.stringify(cachedJury));
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  // 2. Persist to Firestore (safely strip undefined fields)
+  try {
+    const cleanJury = sanitizeForFirestore(newJury);
+    await setDoc(doc(db, 'jury_members', newJuryId), cleanJury);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, `jury_members/${newJuryId}`);
+  }
+
+  return newJury;
+}
+
+export async function updateJuryMember(
+  juryId: string,
+  updatedData: Partial<Omit<JuryMember, 'id' | 'registeredAt'>>
+): Promise<JuryMember | null> {
+  const index = cachedJury.findIndex((j) => j.id === juryId);
+  if (index === -1) return null;
+
+  const oldJury = cachedJury[index];
+
+  let newPasswordHash = oldJury.password;
+  if (updatedData.password) {
+    newPasswordHash = isSha256Hash(updatedData.password)
+      ? updatedData.password
+      : await hashPassword(updatedData.password);
+  }
+
+  const updatedJury: JuryMember = {
+    ...oldJury,
+    name: updatedData.name ? updatedData.name.trim() : oldJury.name,
+    email: updatedData.email ? updatedData.email.trim().toLowerCase() : oldJury.email,
+    isHeadJury: updatedData.isHeadJury !== undefined ? updatedData.isHeadJury : oldJury.isHeadJury,
+    isOrganizer: updatedData.isOrganizer !== undefined ? updatedData.isOrganizer : oldJury.isOrganizer,
+    bioQuote: updatedData.bioQuote !== undefined ? updatedData.bioQuote.trim() : oldJury.bioQuote,
+    scoutingAffiliation:
+      updatedData.scoutingAffiliation !== undefined
+        ? updatedData.scoutingAffiliation.trim()
+        : oldJury.scoutingAffiliation,
+    avatarType: updatedData.avatarType || oldJury.avatarType,
+    avatarPresetId: updatedData.avatarPresetId !== undefined ? updatedData.avatarPresetId : oldJury.avatarPresetId,
+    photoUrl: updatedData.photoUrl !== undefined ? updatedData.photoUrl : oldJury.photoUrl,
+    status: updatedData.status || oldJury.status,
+    favoriteSpel: updatedData.favoriteSpel !== undefined ? updatedData.favoriteSpel : oldJury.favoriteSpel,
+    password: newPasswordHash,
+  };
+
+  cachedJury[index] = updatedJury;
+  localStorage.setItem(JURY_STORAGE_KEY, JSON.stringify(cachedJury));
+
+  // Persist to Firestore (safely strip undefined fields)
+  try {
+    const cleanJury = sanitizeForFirestore(updatedJury);
+    await setDoc(doc(db, 'jury_members', juryId), cleanJury, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `jury_members/${juryId}`);
+  }
+
+  // If this jury member is currently logged in, update session
+  const activeJury = getJurySession();
+  if (activeJury && activeJury.id === juryId) {
+    setJurySession(updatedJury);
+  }
+
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+  return updatedJury;
+}
+
+export function deleteJuryMember(juryId: string): void {
+  cachedJury = cachedJury.filter((j) => j.id !== juryId);
+  localStorage.setItem(JURY_STORAGE_KEY, JSON.stringify(cachedJury));
+
+  // Delete from Firestore
+  deleteDoc(doc(db, 'jury_members', juryId)).catch((error) => {
+    handleFirestoreError(error, OperationType.DELETE, `jury_members/${juryId}`);
+  });
+
+  // If logged in, logout
+  const activeJury = getJurySession();
+  if (activeJury && activeJury.id === juryId) {
+    setJurySession(null);
+  }
+
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+}
+
+/**
+ * Authenticates a jury member using email/name and password.
+ */
+export async function authenticateJury(
+  identifier: string,
+  inputPassword: string
+): Promise<{ success: boolean; jury?: JuryMember; message?: string }> {
+  const trimmedId = identifier.trim().toLowerCase();
+  const trimmedPass = inputPassword.trim();
+  if (!trimmedId || !trimmedPass) {
+    return { success: false, message: 'Vul a.u.b. zowel je e-mailadres/naam als wachtwoord in.' };
+  }
+
+  const juryList = getStoredJuryMembers();
+  for (const member of juryList) {
+    const matchEmail = member.email.trim().toLowerCase() === trimmedId;
+    const matchName = member.name.trim().toLowerCase() === trimmedId;
+    if (matchEmail || matchName) {
+      const storedPass = member.password || 'JuryBadeend2027';
+      const isValid = await verifyPassword(trimmedPass, storedPass);
+      if (isValid) {
+        if (!isSha256Hash(storedPass)) {
+          const newHash = await hashPassword(trimmedPass);
+          await updateJuryMember(member.id, { password: newHash });
+          member.password = newHash;
+        }
+        return { success: true, jury: member };
+      }
+    }
+  }
+
+  return {
+    success: false,
+    message: 'Geen jurylid gevonden met deze combinatie van e-mail en wachtwoord.',
+  };
 }
 
 /**

@@ -221,7 +221,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     <input
                       type="text"
                       required
-                      placeholder="bijv. Kapitein Kwakkelmans"
+                      placeholder="bijv. Jan Jansen"
                       value={captainName}
                       onChange={(e) => setCaptainName(e.target.value)}
                       className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none"
@@ -235,7 +235,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     <input
                       type="email"
                       required
-                      placeholder="kapitein.kwak@badeendmail.nl"
+                      placeholder="bijv. jan.jansen@voorbeeld.nl"
                       value={captainEmail}
                       onChange={(e) => setCaptainEmail(e.target.value)}
                       className="w-full px-4 py-3 bg-white border-2 border-black text-sm font-bold text-black focus:outline-none"

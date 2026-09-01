@@ -4,12 +4,15 @@ import { ADMIN_CREDENTIALS } from '../data/mockData';
 import {
   setAdminSession,
   setTeamSession,
+  setJurySession,
   authenticateTeam,
   authenticateAdmin,
+  authenticateJury,
 } from '../utils/storage';
 import {
   ShieldAlert,
   Users,
+  Award,
   Lock,
   Mail,
   Eye,
@@ -21,14 +24,14 @@ import {
 
 interface LoginPageProps {
   onNavigate: (page: PageRoute) => void;
-  initialTab?: 'team' | 'organisatie';
+  initialTab?: 'team' | 'jury' | 'organisatie';
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
   onNavigate,
   initialTab = 'team',
 }) => {
-  const [activeTab, setActiveTab] = useState<'team' | 'organisatie'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'team' | 'jury' | 'organisatie'>(initialTab);
 
   // Form states
   const [emailOrTeam, setEmailOrTeam] = useState('');
@@ -52,7 +55,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     const inputPassword = password;
 
     if (!inputIdentifier || !inputPassword) {
-      setErrorMessage('Vul zowel je e-mail/teamnaam als wachtwoord in.');
+      setErrorMessage('Vul zowel je e-mail/gebruikersnaam als wachtwoord in.');
       return;
     }
 
@@ -74,7 +77,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // 2. Check Team credentials with SHA-256 verification
+    // 2. Check Jury credentials if tab is jury (or fallback)
+    if (activeTab === 'jury') {
+      const juryResult = await authenticateJury(inputIdentifier, inputPassword);
+      if (juryResult.success && juryResult.jury) {
+        setJurySession(juryResult.jury);
+        showToast(`Welkom terug, jurylid ${juryResult.jury.name}!`);
+        setTimeout(() => {
+          onNavigate('jury-portal');
+        }, 300);
+        return;
+      }
+
+      setErrorMessage(
+        juryResult.message ||
+          'Geen jurylid gevonden met dit e-mailadres en wachtwoord. Controleer je gegevens of meld je aan als jurylid.'
+      );
+      return;
+    }
+
+    // 3. Check Team credentials
     const authResult = await authenticateTeam(inputIdentifier, inputPassword);
 
     if (authResult.success && authResult.team) {
@@ -86,9 +108,20 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
+    // If on team tab, try jury as fallback convenience
+    const juryFallback = await authenticateJury(inputIdentifier, inputPassword);
+    if (juryFallback.success && juryFallback.jury) {
+      setJurySession(juryFallback.jury);
+      showToast(`Welkom terug, jurylid ${juryFallback.jury.name}!`);
+      setTimeout(() => {
+        onNavigate('jury-portal');
+      }, 300);
+      return;
+    }
+
     setErrorMessage(
       authResult.message ||
-        'Geen team gevonden met deze combinatie van e-mail/teamnaam en wachtwoord. Controleer je gegevens of meld je team aan.'
+        'Geen account gevonden met deze gegevens. Controleer je invoer of meld je team/jury aan.'
     );
   };
 
@@ -100,11 +133,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           <span className="text-sky-400 font-display font-black text-xs sm:text-sm tracking-widest uppercase block mb-2">
             TOEGANGSPORTAAL
           </span>
-          <h1 className="font-display font-black text-6xl sm:text-7xl md:text-8xl text-amber-400 tracking-tight uppercase leading-none mb-4">
+          <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-amber-400 tracking-tight uppercase leading-none mb-4">
             INLOGGEN
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 font-semibold max-w-xl">
-            Log in als deelnemend team om jullie teamleden en gegevens te beheren, of als wedstrijdleiding voor scorebeheer.
+            Log in als deelnemend team, vrijwillig jurylid om je profiel te beheren, of als wedstrijdleiding.
           </p>
         </div>
       </section>
@@ -113,22 +146,39 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <div className="max-w-xl mx-auto">
           {/* Tab Selector */}
-          <div className="grid grid-cols-2 border-2 border-black mb-6 bg-slate-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="grid grid-cols-3 border-2 border-black mb-6 bg-slate-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <button
               type="button"
               onClick={() => {
                 setActiveTab('team');
                 setErrorMessage(null);
               }}
-              className={`py-3.5 px-4 font-display font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all ${
+              className={`py-3 px-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
                 activeTab === 'team'
                   ? 'bg-amber-400 text-black'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <Users size={16} />
-              TEAM INLOGGEN
+              <Users size={14} className="shrink-0" />
+              <span>TEAM</span>
             </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('jury');
+                setErrorMessage(null);
+              }}
+              className={`py-3 px-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all border-l-2 border-black ${
+                activeTab === 'jury'
+                  ? 'bg-amber-400 text-black'
+                  : 'bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Award size={14} className="shrink-0" />
+              <span>JURY</span>
+            </button>
+
             <button
               type="button"
               onClick={() => {
@@ -136,14 +186,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 setErrorMessage(null);
                 if (emailOrTeam === '') setEmailOrTeam(ADMIN_CREDENTIALS.email);
               }}
-              className={`py-3.5 px-4 font-display font-black text-xs sm:text-sm uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all border-l-2 border-black ${
+              className={`py-3 px-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all border-l-2 border-black ${
                 activeTab === 'organisatie'
                   ? 'bg-black text-amber-400'
                   : 'bg-white text-slate-700 hover:bg-slate-50'
               }`}
             >
-              <ShieldAlert size={16} />
-              ORGANISATIE
+              <ShieldAlert size={14} className="shrink-0" />
+              <span>ORGANISATIE</span>
             </button>
           </div>
 
@@ -154,20 +204,32 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 className={`w-10 h-10 border-2 border-black flex items-center justify-center ${
                   activeTab === 'organisatie'
                     ? 'bg-black text-amber-400'
+                    : activeTab === 'jury'
+                    ? 'bg-amber-400 text-black'
                     : 'bg-amber-400 text-black'
                 }`}
               >
-                {activeTab === 'organisatie' ? <ShieldAlert size={20} /> : <Users size={20} />}
+                {activeTab === 'organisatie' ? (
+                  <ShieldAlert size={20} />
+                ) : activeTab === 'jury' ? (
+                  <Award size={20} />
+                ) : (
+                  <Users size={20} />
+                )}
               </div>
               <div>
                 <h2 className="font-display font-black text-xl uppercase tracking-tight text-black">
                   {activeTab === 'organisatie'
                     ? 'ORGANISATIE / SCOREBEHEER'
+                    : activeTab === 'jury'
+                    ? 'JURYPORTAAL INLOGGEN'
                     : 'TEAMPORTAAL INLOGGEN'}
                 </h2>
                 <p className="text-xs font-semibold text-slate-500">
                   {activeTab === 'organisatie'
-                    ? 'Toegang tot juryscores en teamverwijdering'
+                    ? 'Toegang tot juryscores, teams & jurybeheer'
+                    : activeTab === 'jury'
+                    ? 'Wijzig je naam, rol, avatar/foto en quote'
                     : 'Pas je teamnaam, aanvoerder of 4 leden aan'}
                 </p>
               </div>
@@ -188,17 +250,21 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   <span>
                     {activeTab === 'organisatie'
                       ? 'E-MAILADRES ORGANISATIE *'
+                      : activeTab === 'jury'
+                      ? 'E-MAILADRES JURYLID *'
                       : 'E-MAILADRES AANVOERDER OF TEAMNAAM *'}
                   </span>
                   <Mail size={14} className="text-slate-400" />
                 </label>
                 <input
-                  type={activeTab === 'organisatie' ? 'email' : 'text'}
+                  type={activeTab === 'organisatie' || activeTab === 'jury' ? 'email' : 'text'}
                   required
                   placeholder={
                     activeTab === 'organisatie'
                       ? 'l.verbrugge219@gmail.com'
-                      : 'bijv. kapitein.kwak@badeendmail.nl of DE KWAKELITEITEN'
+                      : activeTab === 'jury'
+                      ? 'bijv. jan.jansen@voorbeeld.nl'
+                      : 'bijv. jan.jansen@voorbeeld.nl of DE KWAKELITEITEN'
                   }
                   value={emailOrTeam}
                   onChange={(e) => setEmailOrTeam(e.target.value)}
@@ -219,6 +285,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     placeholder={
                       activeTab === 'organisatie'
                         ? 'Wachtwoord organisatie'
+                        : activeTab === 'jury'
+                        ? 'Wachtwoord jurylid'
                         : 'Wachtwoord van je team'
                     }
                     value={password}
@@ -247,6 +315,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 <span>
                   {activeTab === 'organisatie'
                     ? 'INLOGGEN ALS ORGANISATIE'
+                    : activeTab === 'jury'
+                    ? 'INLOGGEN ALS JURYLID'
                     : 'INLOGGEN BIJ TEAM'}
                 </span>
                 <ArrowRight size={18} />
@@ -263,6 +333,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     className="text-black font-display font-black uppercase tracking-wider underline hover:text-amber-600 cursor-pointer"
                   >
                     MELD JE TEAM HIER AAN →
+                  </button>
+                </>
+              ) : activeTab === 'jury' ? (
+                <>
+                  <span>Nog niet aangemeld als jurylid?</span>
+                  <button
+                    onClick={() => onNavigate('jury')}
+                    className="text-black font-display font-black uppercase tracking-wider underline hover:text-amber-600 cursor-pointer"
+                  >
+                    MELD JE HIER AAN ALS JURY →
                   </button>
                 </>
               ) : (

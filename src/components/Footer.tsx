@@ -32,15 +32,17 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               3 april 2027 · Scouting Van Brederode, Papendrecht. Vijf spelen. Eén winnaar. Eeuwige roem.
             </p>
             <div className="pt-2">
-              <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block mb-0.5">
-                Vrijwillige Jury aanmelden:
+              <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider block mb-1">
+                Vrijwillige Jury Badeendlympics:
               </span>
-              <a
-                href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
-                className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1.5"
-              >
-                Lotte@scoutingpapendrecht.nl
-              </a>
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => onNavigate('jury')}
+                  className="text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors inline-flex items-center gap-1 cursor-pointer underline"
+                >
+                  Bekijk Juryleden & Aanmelden →
+                </button>
+              </div>
             </div>
           </div>
 

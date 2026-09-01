@@ -1,15 +1,25 @@
-import React from 'react';
-import { PageRoute } from '../types';
+import React, { useState, useEffect } from 'react';
+import { PageRoute, JuryMember } from '../types';
 import { SPELEN } from '../data/mockData';
 import { MarqueeTicker } from '../components/MarqueeTicker';
 import { CountdownTimer } from '../components/CountdownTimer';
-import { ArrowUpRight } from 'lucide-react';
+import { JuryAvatar } from '../components/JuryAvatar';
+import { getStoredJuryMembers } from '../utils/storage';
+import { ArrowUpRight, Award, Shield, UserPlus, Eye, Quote } from 'lucide-react';
 
 interface HomePageProps {
   onNavigate: (page: PageRoute) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
+  const [juryMembers, setJuryMembers] = useState<JuryMember[]>([]);
+
+  useEffect(() => {
+    setJuryMembers(getStoredJuryMembers());
+    const handleUpdate = () => setJuryMembers(getStoredJuryMembers());
+    window.addEventListener('badeendlympics_data_change', handleUpdate);
+    return () => window.removeEventListener('badeendlympics_data_change', handleUpdate);
+  }, []);
   return (
     <div className="bg-white text-black min-h-screen">
       {/* 1. HERO SECTION (SPLIT LAYOUT) */}
@@ -246,7 +256,87 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* 4. "JOUW TEAM. ONS PARCOURS." YELLOW BANNER */}
+      {/* 4. SPOTLIGHT: VRIJWILLIGE JURY */}
+      <section className="bg-slate-900 text-white border-t-2 border-black py-16 sm:py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-400 border border-black text-[11px] font-black uppercase tracking-widest text-black mb-3 shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]">
+                <Award size={14} />
+                <span>OFFICIËLE JURYCOMMISSIE</span>
+              </div>
+              <h2 className="font-display font-black text-4xl sm:text-5xl md:text-6xl uppercase tracking-tight text-white leading-none">
+                ONTMOET ONZE <span className="text-amber-400">VRIJWILLIGE JURY</span>
+              </h2>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => onNavigate('jury')}
+                className="bg-amber-400 text-black px-5 py-3 font-display font-black text-xs uppercase tracking-wider border-2 border-white shadow-[3px_3px_0px_0px_rgba(255,255,255,1)] hover:bg-amber-300 transition-all cursor-pointer flex items-center gap-2"
+              >
+                <UserPlus size={16} />
+                <span>MELD JE AAN ALS JURYLID</span>
+              </button>
+              <button
+                onClick={() => onNavigate('jury')}
+                className="bg-black text-white px-5 py-3 font-display font-black text-xs uppercase tracking-wider border-2 border-slate-700 hover:border-white transition-all cursor-pointer flex items-center gap-2"
+              >
+                <Eye size={16} />
+                <span>BEKIJK ALLE JURYLEDEN ({juryMembers.length})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Cards preview reel */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {juryMembers.slice(0, 3).map((member) => (
+              <div
+                key={member.id}
+                onClick={() => onNavigate('jury')}
+                className="bg-black border-2 border-slate-700 hover:border-amber-400 p-6 shadow-[4px_4px_0px_0px_rgba(250,204,21,1)] transition-all cursor-pointer flex flex-col justify-between group"
+              >
+                <div>
+                  <div className="flex items-start gap-4 mb-4">
+                    <JuryAvatar
+                      avatarType={member.avatarType}
+                      avatarPresetId={member.avatarPresetId}
+                      photoUrl={member.photoUrl}
+                      size="md"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <span className="inline-block bg-amber-400 text-black font-display font-black text-[9px] px-1.5 py-0.5 uppercase mb-1">
+                        JURY
+                      </span>
+                      <h4 className="font-display font-black text-base sm:text-lg uppercase text-white group-hover:text-amber-400 transition-colors truncate">
+                        {member.name}
+                      </h4>
+                      <p className="text-xs font-bold text-amber-500 uppercase">
+                        {member.roleTitle}
+                      </p>
+                    </div>
+                  </div>
+
+                  {member.bioQuote && (
+                    <div className="relative pl-5 pr-2 py-2 bg-zinc-900 border-l-2 border-amber-400 text-xs italic text-slate-300">
+                      <Quote size={12} className="absolute left-1 top-2 text-amber-400 not-italic opacity-80" />
+                      "{member.bioQuote}"
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-zinc-800 flex items-center justify-between text-[11px] font-bold text-slate-400">
+                  <span>{member.scoutingAffiliation || 'Scouting'}</span>
+                  <span className="text-amber-400 group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                    Profiel bekijken →
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 5. "JOUW TEAM. ONS PARCOURS." YELLOW BANNER */}
       <section className="bg-amber-400 border-y-2 border-black py-20 sm:py-28 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto text-center">
           <h2 className="font-display font-black text-6xl sm:text-7xl md:text-8xl lg:text-9xl uppercase tracking-tight leading-[0.88] mb-10">

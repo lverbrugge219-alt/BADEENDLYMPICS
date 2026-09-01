@@ -86,6 +86,72 @@
         }
       },
       "required": ["id", "teamName", "spelId", "spelName", "points", "updatedAt"]
+    },
+    "JuryMember": {
+      "title": "JuryMember",
+      "description": "Represents a volunteer jury member who judges the Badeendlympics.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique jury member identifier."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the jury member.",
+          "maxLength": 100
+        },
+        "email": {
+          "type": "string",
+          "description": "Contact email address of the jury member.",
+          "maxLength": 150
+        },
+        "password": {
+          "type": "string",
+          "description": "SHA-256 hashed password for jury self-service profile editing."
+        },
+        "isHeadJury": {
+          "type": "boolean",
+          "description": "Flag set by organization if member is Head of Jury."
+        },
+        "isOrganizer": {
+          "type": "boolean",
+          "description": "Flag set by organization if member is an organizer."
+        },
+        "bioQuote": {
+          "type": "string",
+          "description": "Personal quote or motto as jury member.",
+          "maxLength": 500
+        },
+        "scoutingAffiliation": {
+          "type": "string",
+          "description": "Affiliation with scouting or organization.",
+          "maxLength": 150
+        },
+        "avatarType": {
+          "type": "string",
+          "enum": ["preset", "custom"]
+        },
+        "avatarPresetId": {
+          "type": "string"
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Compressed Base64 avatar data URL (WebP/JPEG)."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "pending"]
+        },
+        "registeredAt": {
+          "type": "string",
+          "description": "ISO timestamp of registration."
+        },
+        "favoriteSpel": {
+          "type": "string"
+        }
+      },
+      "required": ["id", "name", "email", "registeredAt"]
     }
   },
   "firestore": {
@@ -100,6 +166,12 @@
         "$ref": "#/entities/ScoreEntry"
       },
       "description": "Collection of recorded scores for each game and team."
+    },
+    "/jury_members/{juryId}": {
+      "schema": {
+        "$ref": "#/entities/JuryMember"
+      },
+      "description": "Collection of volunteer jury members."
     }
   }
 }

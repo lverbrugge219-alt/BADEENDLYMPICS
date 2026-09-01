@@ -39,6 +39,37 @@ export interface ScoreEntry {
   updatedAt: string;
 }
 
+export type PresetAvatarId =
+  | 'duck-referee'
+  | 'duck-judge-wig'
+  | 'duck-gold'
+  | 'duck-detective'
+  | 'duck-captain'
+  | 'duck-sunglasses'
+  | 'duck-pirate'
+  | 'duck-whistle'
+  | 'duck-swimmer'
+  | 'duck-wizard';
+
+export interface JuryMember {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  isHeadJury?: boolean; // Alleen in te stellen door de organisatie
+  isOrganizer?: boolean; // Alleen in te stellen door de organisatie
+  bioQuote?: string; // e.g. "Een dobber zonder stijl krijgt bij mij geen 10 punten."
+  scoutingAffiliation?: string; // e.g. "Scouting Van Brederode", "Oud-lid / Vrijwilliger", "Sympathisant"
+  avatarType: 'preset' | 'custom';
+  avatarPresetId?: PresetAvatarId;
+  photoUrl?: string; // Compressed Base64 image data URL (WebP/JPEG, max 30-50KB)
+  status: 'active' | 'pending';
+  registeredAt: string;
+  favoriteSpel?: SpelId | 'all';
+  roleTitle?: string; // Legacy / optioneel
+  specialty?: string; // Legacy / optioneel
+}
+
 export type PageRoute =
   | 'home'
   | 'info'
@@ -46,6 +77,9 @@ export type PageRoute =
   | 'scores'
   | 'deelnemers'
   | 'inschrijven'
+  | 'jury'
+  | 'jury-aanmelden'
+  | 'jury-portal'
   | 'login'
   | 'team-portal'
   | 'scorebeheer'
@@ -63,4 +97,5 @@ export interface ScheduleItem {
   location?: string;
   highlight?: boolean;
 }
+
 
