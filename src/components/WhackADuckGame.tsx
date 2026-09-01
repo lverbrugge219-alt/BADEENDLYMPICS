@@ -671,13 +671,13 @@ export const WhackADuckGame: React.FC = () => {
           <span className="text-[10px] text-slate-500 font-bold">+10 pt</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">👑</span>
-          <span className="font-bold text-[11px] block">Gouden Koning</span>
+          <span className="text-lg block mb-0.5">🏆</span>
+          <span className="font-bold text-[11px] block">Troffee</span>
           <span className="text-[10px] text-amber-600 font-black">+35 pt (snel)</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🤿</span>
-          <span className="font-bold text-[11px] block">Snorkel Eend</span>
+          <span className="text-lg block mb-0.5">🍺</span>
+          <span className="font-bold text-[11px] block">Pils!</span>
           <span className="text-[10px] text-sky-600 font-black">+20 pt</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
