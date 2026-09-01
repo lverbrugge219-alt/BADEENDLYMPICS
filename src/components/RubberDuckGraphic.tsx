@@ -167,9 +167,9 @@ export const RubberDuckGraphic: React.FC<RubberDuckGraphicProps> = ({
           </g>
         )}
 
-        {accessory === 'snorkel' && (
+        {accessory === 'Pils!' && (
           <g>
-            {/* Snorkel tube */}
+            {/* Pils! */}
             <path
               d="M 94 44 C 98 48, 102 48, 104 36 L 106 10 C 106 7, 109 5, 112 7"
               fill="none"
