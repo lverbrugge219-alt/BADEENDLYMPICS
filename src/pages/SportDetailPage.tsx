@@ -1,7 +1,8 @@
 import React from 'react';
 import { PageRoute, SpelId } from '../types';
 import { SPELEN } from '../data/mockData';
-import { ArrowLeft, Trophy } from 'lucide-react';
+import { ArrowLeft, Sparkles, Gamepad2 } from 'lucide-react';
+import { WhackADuckGame } from '../components/WhackADuckGame';
 
 interface SportDetailPageProps {
   spelId: SpelId;
@@ -10,6 +11,7 @@ interface SportDetailPageProps {
 
 export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavigate }) => {
   const spel = SPELEN.find((s) => s.id === spelId) || SPELEN[0];
+  const isSpel1 = spel.id === 'geheim-01' || spel.number === '01';
 
   return (
     <div className="bg-white text-black min-h-screen">
@@ -24,7 +26,7 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavi
         </button>
 
         {/* Hero Split for Spel */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-16 sm:mb-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-12 sm:mb-16">
           {/* Left Column: Number, Title, Tagline, Description */}
           <div className="lg:col-span-6">
             <div className="font-display font-black text-7xl sm:text-8xl md:text-9xl text-amber-400 text-stroke-black leading-none mb-2 select-none">
@@ -35,24 +37,69 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavi
               {spel.name}
             </h1>
 
-            <div className="text-sky-500 font-display font-black text-xs sm:text-sm tracking-widest uppercase mb-6">
-              {spel.tagline}
+            <div className="text-sky-500 font-display font-black text-xs sm:text-sm tracking-widest uppercase mb-6 flex items-center gap-2">
+              <span>{spel.tagline}</span>
+              {isSpel1 && (
+                <span className="px-2 py-0.5 bg-amber-400 text-black border border-black text-[10px] font-black uppercase">
+                  Teaser Beschikbaar
+                </span>
+              )}
             </div>
 
-            <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium max-w-xl">
+            <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium max-w-xl mb-6">
               {spel.description}
             </p>
+
+            {isSpel1 && (
+              <a
+                href="#teaser-game"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300 transition-colors"
+              >
+                <Gamepad2 size={16} /> SPEEL DE TRAININGS-TEASER HIERONDER ↓
+              </a>
+            )}
           </div>
 
-          {/* Right Column: Image or Mystery Icon in Black Border */}
+          {/* Right Column: Image, Whack-A-Duck Teaser Hook, or Mystery Icon */}
           <div className="lg:col-span-6">
-            <div className="bg-slate-100 border-2 border-black overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] aspect-[4/3] flex items-center justify-center">
+            <div className="bg-slate-100 border-2 border-black overflow-hidden shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] aspect-[4/3] flex items-center justify-center relative">
               {spel.imageUrl ? (
                 <img
                   src={spel.imageUrl}
                   alt={spel.name}
                   className="w-full h-full object-cover"
                 />
+              ) : isSpel1 ? (
+                <div className="bg-sky-950 w-full h-full flex flex-col items-center justify-center p-6 text-center text-white relative overflow-hidden">
+                  {/* Background pattern */}
+                  <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:12px_12px]" />
+
+                  <div className="relative z-10 flex flex-col items-center">
+                    <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white border-2 border-black p-1.5 mb-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden">
+                      <img
+                        src="/hammer-duck.png"
+                        alt="Badeendjes Meppen Teaser"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <span className="font-display font-black text-xs sm:text-sm tracking-widest uppercase text-amber-400 mb-1 flex items-center gap-1.5">
+                      <Sparkles size={14} /> EXCLUSIEVE DISCIPLINE #01 TEASER
+                    </span>
+                    <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-white mb-2">
+                      BADEENDJES MEPPEN
+                    </h3>
+                    <p className="text-xs text-sky-200 font-medium max-w-xs mb-4">
+                      Test je reflexen en reactievermogen in deze trainingsminigame voor het eerste geheime spel!
+                    </p>
+                    <a
+                      href="#teaser-game"
+                      className="px-4 py-2 bg-amber-400 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none"
+                    >
+                      DIRECT SPELEN ↓
+                    </a>
+                  </div>
+                </div>
               ) : (
                 <div className="bg-black w-full h-full flex flex-col items-center justify-center p-8 text-center text-white">
                   <div className="font-display font-black text-8xl text-amber-400 leading-none mb-4">
@@ -66,6 +113,27 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavi
             </div>
           </div>
         </div>
+
+        {/* Spel 1 Interactive Whack-a-Duck Teaser Section */}
+        {isSpel1 && (
+          <div id="teaser-game" className="mb-16 pt-4 scroll-mt-24">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 border-2 border-black text-xs font-display font-black uppercase tracking-wider text-black mb-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <Gamepad2 size={14} /> INTERACTIEVE TEASER GAME
+                </div>
+                <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black leading-none">
+                  SPEL 1 TRAINING: BADEENDJES TIKKEN
+                </h2>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md">
+                Een voorproefje op de snelheid en behendigheid die gevraagd wordt tijdens Spel 1 van de Badeendlympics 2027.
+              </p>
+            </div>
+
+            <WhackADuckGame />
+          </div>
+        )}
 
         {/* Spelregels Section */}
         <div className="pt-8 border-t-2 border-slate-100">
@@ -111,3 +179,4 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({ spelId, onNavi
     </div>
   );
 };
+

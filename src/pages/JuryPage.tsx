@@ -227,7 +227,7 @@ export const JuryPage: React.FC<JuryPageProps> = ({
             DE VRIJWILLIGE JURY
           </h1>
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl font-medium leading-relaxed mb-8">
-            Geen Badeendlympics 2027 zonder strenge doch rechtvaardige jury! Ontmoet onze officiële Badeendlympics juryleden of meld je zelf aan als vrijwillig jurylid voor 3 april 2027.
+            Geen Olympische Spelen zonder strenge doch rechtvaardige scheidsrechters! Ontmoet onze officiële Badeendlympics juryleden of meld je zelf aan als vrijwillig jurylid voor 3 april 2027.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -258,7 +258,7 @@ export const JuryPage: React.FC<JuryPageProps> = ({
             <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Zoek op naam, rol of scoutinggroep"
+              placeholder="Zoek op naam, rol, scoutinggroep of specialiteit..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-2 border-black text-xs sm:text-sm font-bold text-black focus:outline-none focus:bg-amber-50/50"
@@ -420,7 +420,7 @@ export const JuryPage: React.FC<JuryPageProps> = ({
               WORD OOK DEEL VAN DE LEGENDARISCHE JURY!
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed mb-6">
-              Als vrijwillig jurylid zorg je voor een badeendtastische sfeer, houd je de eerlijkheid van de 5 spellen in de gaten, beoordeel je teamoutfits en assisteer je bij het scorebord op 3 april 2027.
+              Als vrijwillig jurylid zorg je voor een fantastische sfeer, houd je de eerlijkheid van de 5 geheime spelen in de gaten, beoordeel je teamoutfits en assisteer je bij het scorebord op 3 april 2027.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">

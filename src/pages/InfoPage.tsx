@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
-import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Beer, Shield, Mail, Scale } from 'lucide-react';
+import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Shield, Mail, HelpCircle } from 'lucide-react';
 
 interface InfoPageProps {
   onNavigate: (page: PageRoute) => void;
@@ -15,8 +15,8 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
       a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en gezelligheid. Teams bestaan uit exact 4 personen. Ieder teamlid moet 18+ zijn voor deelname.',
     },
     {
-      q: 'Kan ik me aanmelden als vrijwillige Jury?',
-      a: 'Jazeker! Vrijwillige juryleden zijn van harte welkom om mee te jureren. Je kunt je aanmelden door een e-mail te sturen naar Lotte@scoutingpapendrecht.nl.',
+      q: 'Heb je vragen of opmerkingen over het evenement?',
+      a: 'Voor alle vragen over de organisatie, het programma of de inschrijvingen kun je direct contact opnemen via een e-mail naar Lotte@scoutingpapendrecht.nl.',
     },
     {
       q: 'Moeten we ons eigen bier of badeend meenemen?',
@@ -182,26 +182,26 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
             ))}
           </div>
 
-          {/* Vrijwillige Jury Banner */}
+          {/* Vragen & Contact Banner */}
           <div className="mt-12 bg-amber-400 border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row items-center justify-between gap-6">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-black text-amber-400 border-2 border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                <Scale size={24} />
+                <HelpCircle size={24} />
               </div>
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-black/70 block mb-0.5">
-                  COMMISSIE & JURY
+                  VRAGEN & CONTACT
                 </span>
                 <h3 className="font-display font-black text-2xl uppercase tracking-tight text-black">
-                  AANMELDEN ALS VRIJWILLIGE JURY
+                  HEB JE EEN VRAAG OVER HET EVENEMENT?
                 </h3>
                 <p className="text-xs sm:text-sm font-semibold text-black/80 mt-1 max-w-md">
-                  Wil je als jurylid toezien op een eerlijk verloop van de spelen? Stuur een e-mail naar <strong className="text-black underline">Lotte@scoutingpapendrecht.nl</strong>.
+                  Heb je een vraag over de BADEENDLYMPICS, de spellen, inschrijvingen of locatie? Stuur een e-mail naar <strong className="text-black underline">Lotte@scoutingpapendrecht.nl</strong>.
                 </p>
               </div>
             </div>
             <a
-              href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
+              href="mailto:Lotte@scoutingpapendrecht.nl?subject=Vraag%20over%20de%20Badeendlympics%202027"
               className="px-6 py-3.5 bg-black text-white border-2 border-black font-display font-black text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2 hover:bg-slate-900 transition-colors shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] shrink-0"
             >
               <Mail size={16} className="text-amber-400" />
