@@ -227,7 +227,7 @@ export const JuryPage: React.FC<JuryPageProps> = ({
             DE VRIJWILLIGE JURY
           </h1>
           <p className="text-sm sm:text-base text-slate-300 max-w-2xl font-medium leading-relaxed mb-8">
-            Geen Olympische Spelen zonder strenge doch rechtvaardige scheidsrechters! Ontmoet onze officiële Badeendlympics juryleden of meld je zelf aan als vrijwillig jurylid voor 3 april 2027.
+            Geen Badeendlympics 2027 zonder strenge doch rechtvaardige jury! Ontmoet onze officiële Badeendlympics juryleden of meld je zelf aan als vrijwillig jurylid voor 3 april 2027.
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
