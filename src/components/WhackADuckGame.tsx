@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, RotateCcw, Volume2, VolumeX, Trophy, Sparkles, Flame, Zap } from 'lucide-react';
+import { Play, RotateCcw, Volume2, VolumeX, Trophy as TrophyIcon, Sparkles, Flame, Beer } from 'lucide-react';
 
-// Duck types with points, duration, and styling
-type DuckType = 'standard' | 'golden' | 'fast' | 'pirate';
+// Duck & Item types with points, duration, and styling
+type DuckType = 'standard' | 'pils' | 'trophy' | 'pirate';
 
 interface HoleState {
   id: number;
@@ -52,7 +52,7 @@ export const WhackADuckGame: React.FC = () => {
 
   // Sound Synthesizer via Web Audio API
   const playSound = useCallback(
-    (type: 'squeak' | 'gold' | 'splash' | 'penalty' | 'start' | 'gameover') => {
+    (type: 'squeak' | 'pils' | 'trophy' | 'penalty' | 'start' | 'gameover') => {
       if (!soundEnabled) return;
       try {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -83,19 +83,41 @@ export const WhackADuckGame: React.FC = () => {
           gain.connect(ctx.destination);
           osc.start(now);
           osc.stop(now + 0.2);
-        } else if (type === 'gold') {
-          // Shiny gold bell / double squeak
+        } else if (type === 'pils') {
+          // Sparkling beer cheers sound / crisp bell clink
           const osc1 = ctx.createOscillator();
           const osc2 = ctx.createOscillator();
           const gain = ctx.createGain();
 
           osc1.type = 'sine';
           osc2.type = 'triangle';
-          osc1.frequency.setValueAtTime(587.33, now); // D5
-          osc1.frequency.setValueAtTime(880, now + 0.08); // A5
-          osc2.frequency.setValueAtTime(1174.66, now); // D6
+          osc1.frequency.setValueAtTime(784, now); // G5
+          osc1.frequency.exponentialRampToValueAtTime(1046.5, now + 0.09); // C6
+          osc2.frequency.setValueAtTime(1318.51, now); // E6
 
-          gain.gain.setValueAtTime(0.25, now);
+          gain.gain.setValueAtTime(0.26, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + 0.35);
+          osc2.stop(now + 0.35);
+        } else if (type === 'trophy') {
+          // Triumphant golden trophy chime
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(587.33, now); // D5
+          osc1.frequency.setValueAtTime(880, now + 0.07); // A5
+          osc2.frequency.setValueAtTime(1174.66, now + 0.07); // D6
+
+          gain.gain.setValueAtTime(0.24, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
           osc1.connect(gain);
@@ -167,7 +189,7 @@ export const WhackADuckGame: React.FC = () => {
     hideTimersRef.current = {};
   };
 
-  // Pop up a duck in random available hole
+  // Pop up a duck/item in random available hole
   const spawnDuck = useCallback(() => {
     setHoles((prevHoles) => {
       // Find inactive holes
@@ -182,19 +204,19 @@ export const WhackADuckGame: React.FC = () => {
       const nextHoles = [...prevHoles];
 
       chosen.forEach((targetHole) => {
-        // Determine duck type based on probabilities
+        // Determine duck/item type based on probabilities
         const rand = Math.random();
         let duckType: DuckType = 'standard';
         let stayDuration = 1100 + Math.random() * 400; // default 1.1s - 1.5s
 
-        if (rand < 0.18) {
-          duckType = 'golden'; // 18% chance
+        if (rand < 0.20) {
+          duckType = 'pils'; // 20% chance: Pils!
           stayDuration = 850;
-        } else if (rand < 0.40) {
-          duckType = 'fast'; // 22% chance
-          stayDuration = 700;
-        } else if (rand < 0.58) {
-          duckType = 'pirate'; // 18% chance (penalty duck!)
+        } else if (rand < 0.42) {
+          duckType = 'trophy'; // 22% chance: Trofee
+          stayDuration = 750;
+        } else if (rand < 0.60) {
+          duckType = 'pirate'; // 18% chance: Piraat (penalty)
           stayDuration = 1200;
         }
 
@@ -207,7 +229,7 @@ export const WhackADuckGame: React.FC = () => {
             hit: false,
           };
 
-          // Schedule duck hide
+          // Schedule auto-hide
           if (hideTimersRef.current[targetHole.id]) {
             clearTimeout(hideTimersRef.current[targetHole.id]);
           }
@@ -289,7 +311,7 @@ export const WhackADuckGame: React.FC = () => {
     setIsPlaying(true);
     playSound('start');
 
-    // Spawn first duck immediately
+    // Spawn first item immediately
     setTimeout(() => {
       spawnDuck();
     }, 200);
@@ -304,7 +326,7 @@ export const WhackADuckGame: React.FC = () => {
     setHoles((prev) => prev.map((h) => ({ ...h, active: false, hit: false })));
   };
 
-  // Hit duck handler
+  // Hit item/duck handler
   const handleDuckClick = (holeId: number) => {
     if (!isPlaying) return;
 
@@ -315,18 +337,18 @@ export const WhackADuckGame: React.FC = () => {
       let points = 10;
       let text = '+10';
 
-      if (hole.duckType === 'golden') {
+      if (hole.duckType === 'pils') {
         points = 35;
-        text = '🌟 +35!';
-        playSound('gold');
-      } else if (hole.duckType === 'fast') {
+        text = '+35!';
+        playSound('pils');
+      } else if (hole.duckType === 'trophy') {
         points = 20;
-        text = '⚡ +20!';
-        playSound('squeak');
+        text = '+20!';
+        playSound('trophy');
       } else if (hole.duckType === 'pirate') {
         // Penalty duck!
         points = -15;
-        text = '☠️ -15';
+        text = '-15';
         playSound('penalty');
       } else {
         playSound('squeak');
@@ -485,7 +507,7 @@ export const WhackADuckGame: React.FC = () => {
             <span className="text-[10px] font-black uppercase tracking-wider text-purple-900">
               RECORD
             </span>
-            <Trophy size={14} className="text-amber-500 fill-amber-400" />
+            <TrophyIcon size={14} className="text-amber-500 fill-amber-400" />
           </div>
           <span className="font-display font-black text-3xl text-purple-950 leading-none block">
             {highScore}
@@ -524,9 +546,11 @@ export const WhackADuckGame: React.FC = () => {
                   <div
                     className={`absolute top-2 z-30 font-display font-black text-sm sm:text-base border border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-75 duration-200 ${
                       floating.type === 'penalty'
-                        ? 'bg-rose-400 text-white'
-                        : floating.type === 'golden'
-                        ? 'bg-amber-300 text-amber-950'
+                        ? 'bg-rose-500 text-white'
+                        : floating.type === 'pils'
+                        ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-600'
+                        : floating.type === 'trophy'
+                        ? 'bg-yellow-300 text-yellow-950 ring-2 ring-yellow-500'
                         : 'bg-white text-black'
                     }`}
                   >
@@ -534,7 +558,7 @@ export const WhackADuckGame: React.FC = () => {
                   </div>
                 )}
 
-                {/* The Duck Character */}
+                {/* The Duck/Item Character */}
                 <div
                   className={`w-full h-full flex flex-col items-center justify-center transition-all duration-150 transform ${
                     hole.active
@@ -544,7 +568,7 @@ export const WhackADuckGame: React.FC = () => {
                       : 'translate-y-16 opacity-0 scale-50 pointer-events-none'
                   }`}
                 >
-                  {/* Duck Visuals based on Type */}
+                  {/* Visuals based on Type */}
                   {hole.duckType === 'standard' && (
                     <div className="flex flex-col items-center animate-bounce-subtle">
                       <span className="text-4xl sm:text-5xl drop-shadow-md filter">🐥</span>
@@ -554,25 +578,26 @@ export const WhackADuckGame: React.FC = () => {
                     </div>
                   )}
 
-                  {hole.duckType === 'golden' && (
+                  {hole.duckType === 'pils' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
-                        <span className="text-4xl sm:text-5xl drop-shadow-md">🦆</span>
-                        <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-base">👑</span>
+                        <span className="text-4xl sm:text-5xl drop-shadow-md">🍺</span>
+                        <span className="absolute -top-1 -right-1 text-xs">✨</span>
                       </div>
-                      <span className="text-[9px] font-black uppercase bg-amber-300 text-amber-950 border border-black px-1 mt-0.5 animate-pulse">
-                        +35 GOUD!
+                      <span className="text-[9px] font-black uppercase bg-amber-400 text-amber-950 border border-black px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        +35!
                       </span>
                     </div>
                   )}
 
-                  {hole.duckType === 'fast' && (
+                  {hole.duckType === 'trophy' && (
                     <div className="flex flex-col items-center">
-                      <div className="relative">
-                        <span className="text-4xl sm:text-5xl drop-shadow-md">🤿</span>
+                      <div className="relative animate-pulse">
+                        <span className="text-4xl sm:text-5xl drop-shadow-md">🏆</span>
+                        <span className="absolute -top-1 -left-1 text-xs">⭐</span>
                       </div>
-                      <span className="text-[9px] font-black uppercase bg-cyan-300 text-cyan-950 border border-black px-1 mt-0.5">
-                        +20 SNEL!
+                      <span className="text-[9px] font-black uppercase bg-yellow-300 text-yellow-950 border border-black px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        🏆 +20!
                       </span>
                     </div>
                   )}
@@ -647,7 +672,7 @@ export const WhackADuckGame: React.FC = () => {
                   KLAAR VOOR DE TRAINING?
                 </div>
                 <p className="text-xs text-slate-600 font-medium mb-4 leading-relaxed">
-                  Tik binnen 30 seconden op zoveel mogelijk gele, gouden en duikende eendjes. Pas op voor de pirateneenden!
+                  Tik binnen 30 seconden op zoveel mogelijk gele badeendjes, koude glazen <strong>Pils!</strong> en gouden <strong>Trofeeën</strong>. Pas op voor de pirateneenden!
                 </p>
 
                 <button
@@ -671,14 +696,14 @@ export const WhackADuckGame: React.FC = () => {
           <span className="text-[10px] text-slate-500 font-bold">+10 pt</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🏆</span>
-          <span className="font-bold text-[11px] block">Troffee</span>
-          <span className="text-[10px] text-amber-600 font-black">+35 pt (snel)</span>
-        </div>
-        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🍺</span>
           <span className="font-bold text-[11px] block">Pils!</span>
-          <span className="text-[10px] text-sky-600 font-black">+20 pt</span>
+          <span className="text-[10px] text-amber-600 font-black">+35 pt (bonus)</span>
+        </div>
+        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
+          <span className="text-lg block mb-0.5">🏆</span>
+          <span className="font-bold text-[11px] block">Trofee</span>
+          <span className="text-[10px] text-yellow-700 font-black">+20 pt (snel)</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🏴‍☠️</span>
