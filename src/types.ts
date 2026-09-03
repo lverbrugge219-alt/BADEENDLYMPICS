@@ -98,4 +98,13 @@ export interface ScheduleItem {
   highlight?: boolean;
 }
 
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  order: number;
+  category?: string;
+  updatedAt?: string;
+}
+
 

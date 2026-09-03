@@ -34,6 +34,11 @@ service cloud.firestore {
              data.email is string && data.email.size() > 0 && data.email.size() <= 150;
     }
 
+    function isValidFaq(data) {
+      return data.question is string && data.question.size() > 0 && data.question.size() <= 300 &&
+             data.answer is string && data.answer.size() > 0 && data.answer.size() <= 2000;
+    }
+
     // Teams Collection
     match /teams/{teamId} {
       allow read: if true;
@@ -56,6 +61,14 @@ service cloud.firestore {
       allow create: if isValidId(juryId) && isValidJuryMember(incoming());
       allow update: if isValidId(juryId) && isValidJuryMember(incoming());
       allow delete: if isValidId(juryId);
+    }
+
+    // FAQs Collection
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow create: if isValidId(faqId) && isValidFaq(incoming());
+      allow update: if isValidId(faqId) && isValidFaq(incoming());
+      allow delete: if isValidId(faqId);
     }
 
     // Analytics Events Collection (for anonymous cookie usage tracking)

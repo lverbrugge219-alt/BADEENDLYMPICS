@@ -1,40 +1,34 @@
-import React, { useState } from 'react';
-import { PageRoute } from '../types';
-import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Shield, Mail, HelpCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { PageRoute, FaqItem } from '../types';
+import { getStoredFaqs } from '../utils/storage';
+import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Shield, Mail, HelpCircle, UserCheck } from 'lucide-react';
 
 interface InfoPageProps {
   onNavigate: (page: PageRoute) => void;
 }
 
 export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
-  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+  const [faqs, setFaqs] = useState<FaqItem[]>(() => getStoredFaqs());
 
-  const faqs = [
-    {
-      q: 'Wie kan er meedoen aan de BADEENDLYMPICS?',
-      a: 'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en gezelligheid. Teams bestaan uit exact 4 personen. Ieder teamlid moet 18+ zijn voor deelname.',
-    },
-    {
-      q: 'Heb je vragen of opmerkingen over het evenement?',
-      a: 'Voor alle vragen over de organisatie, het programma of de inschrijvingen kun je direct contact opnemen via een e-mail naar Lotte@scoutingpapendrecht.nl.',
-    },
-    {
-      q: 'Moeten we ons eigen bier of badeend meenemen?',
-      a: 'Nee! De organisatie en Scouting Van Brederode verzorgen alle officiële wedstrijdbadeenden en benodigdheden voor de spellen. De bar in het clubgebouw is geopend voor een lekker drankje.',
-    },
-    {
-      q: 'Wat kosten de inschrijvingen?',
-      a: 'Inschrijven is geheel gratis en kan t/m 1 maart 2027. Eventuele kosten worden achteraf verrekend met de deelnemers.',
-    },
-    {
-      q: 'Wat winnen we als we eerste worden?',
-      a: 'Eeuwige roem in Papendrecht en omstreken, de officiële BADEENDLYMPICS 2027 titel en een welverdiende goudgele rakker voor het winnende team!',
-    },
-    {
-      q: 'Zijn toeschouwers welkom?',
-      a: 'Zeker! Toegang voor supporters en toeschouwers is gratis. Er is volop muziek, sfeer en spektakel op het terrein.',
-    },
-  ];
+  useEffect(() => {
+    const handleDataChange = () => {
+      const stored = getStoredFaqs();
+      setFaqs(stored);
+      if (stored.length > 0 && openFaq === null) {
+        setOpenFaq(stored[0].id);
+      }
+    };
+
+    const initial = getStoredFaqs();
+    setFaqs(initial);
+    if (initial.length > 0) {
+      setOpenFaq(initial[0].id);
+    }
+
+    window.addEventListener('badeendlympics_data_change', handleDataChange);
+    return () => window.removeEventListener('badeendlympics_data_change', handleDataChange);
+  }, []);
 
   return (
     <div className="bg-white text-black min-h-screen">
@@ -161,25 +155,48 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
           </h2>
 
           <div className="space-y-3">
-            {faqs.map((faq, idx) => (
-              <div
-                key={idx}
-                className="border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden"
-              >
-                <button
-                  onClick={() => setOpenFaq(openFaq === idx ? null : idx)}
-                  className="w-full text-left p-4 sm:p-5 font-display font-black text-base sm:text-lg uppercase tracking-tight flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50"
+            {faqs.map((faq) => {
+              const isOpen = openFaq === faq.id;
+              const isJuryRelated = faq.category?.toLowerCase() === 'jury' || faq.question.toLowerCase().includes('jury');
+              return (
+                <div
+                  key={faq.id}
+                  className="border-2 border-black bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden transition-colors"
                 >
-                  <span>{faq.q}</span>
-                  {openFaq === idx ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                </button>
-                {openFaq === idx && (
-                  <div className="p-4 sm:p-5 pt-0 text-xs sm:text-sm font-medium text-slate-700 leading-relaxed border-t border-slate-200">
-                    {faq.a}
-                  </div>
-                )}
-              </div>
-            ))}
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : faq.id)}
+                    className="w-full text-left p-4 sm:p-5 font-display font-black text-base sm:text-lg uppercase tracking-tight flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50"
+                  >
+                    <div className="flex items-center gap-3">
+                      {faq.category && (
+                        <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-slate-100 border border-black text-slate-700 shrink-0">
+                          {faq.category}
+                        </span>
+                      )}
+                      <span>{faq.question}</span>
+                    </div>
+                    {isOpen ? <ChevronUp size={20} className="shrink-0" /> : <ChevronDown size={20} className="shrink-0" />}
+                  </button>
+                  {isOpen && (
+                    <div className="p-4 sm:p-5 pt-0 text-xs sm:text-sm font-medium text-slate-700 leading-relaxed border-t border-slate-200">
+                      <p className="whitespace-pre-line">{faq.answer}</p>
+                      {isJuryRelated && (
+                        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() => onNavigate('jury')}
+                            className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-amber-700 hover:text-black transition-colors cursor-pointer"
+                          >
+                            <UserCheck size={14} />
+                            Ga direct naar de Jurypagina →
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Vragen & Contact Banner */}

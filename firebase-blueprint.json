@@ -152,6 +152,41 @@
         }
       },
       "required": ["id", "name", "email", "registeredAt"]
+    },
+    "FaqItem": {
+      "title": "FaqItem",
+      "description": "Represents a frequently asked question and answer managed by the organization.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the FAQ item."
+        },
+        "question": {
+          "type": "string",
+          "description": "The question title or text.",
+          "maxLength": 300
+        },
+        "answer": {
+          "type": "string",
+          "description": "The detailed answer to the question.",
+          "maxLength": 2000
+        },
+        "order": {
+          "type": "number",
+          "description": "Display order index."
+        },
+        "category": {
+          "type": "string",
+          "description": "Optional category (e.g. Algemeen, Teams, Spellen, Jury).",
+          "maxLength": 50
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update."
+        }
+      },
+      "required": ["id", "question", "answer"]
     }
   },
   "firestore": {
@@ -172,6 +207,12 @@
         "$ref": "#/entities/JuryMember"
       },
       "description": "Collection of volunteer jury members."
+    },
+    "/faqs/{faqId}": {
+      "schema": {
+        "$ref": "#/entities/FaqItem"
+      },
+      "description": "Collection of frequently asked questions managed by the organization."
     }
   }
 }

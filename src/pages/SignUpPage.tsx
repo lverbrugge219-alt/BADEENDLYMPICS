@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
 import { saveTeam, setTeamSession } from '../utils/storage';
-import { CheckCircle2, Users, Mail, ShieldAlert, Lock, Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle2, Users, Mail, ShieldAlert, Lock, Eye, EyeOff, AlertCircle, ArrowRight, UserCheck, Award } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface SignUpPageProps {
@@ -394,7 +394,7 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             <div className="bg-amber-400 border-2 border-black p-6 sm:p-7 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-black">
               <div className="flex items-center gap-2.5 mb-3">
                 <div className="w-8 h-8 bg-black text-amber-400 border border-black flex items-center justify-center font-black">
-                  <ShieldAlert size={18} />
+                  <Award size={18} />
                 </div>
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-black/70 block">
@@ -407,29 +407,26 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
               </div>
 
               <p className="text-xs font-semibold text-black/90 leading-relaxed mb-4">
-                Wil je niet deelnemen met een team, maar wel onderdeel zijn van de legendarische BADEENDLYMPICS? Meld je aan als vrijwillig jurylid!
+                Wil je niet deelnemen met een team, maar wel onderdeel zijn van de legendarische BADEENDLYMPICS 2027? Meld je direct online aan als vrijwillig jurylid!
               </p>
 
               <div className="bg-white border-2 border-black p-3.5 mb-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                  Aanmelden via e-mail:
+                  Aanmelden via de website:
                 </span>
-                <a
-                  href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
-                  className="font-display font-black text-sm sm:text-base text-sky-600 hover:text-sky-800 break-all flex items-center gap-1.5 transition-colors"
-                >
-                  <Mail size={16} className="shrink-0 text-black" />
-                  <span>Lotte@scoutingpapendrecht.nl</span>
-                </a>
+                <p className="text-xs font-bold text-slate-900 leading-snug">
+                  Kies je eigen badeend-avatar, stel je juryprofiel in en jureer mee op 3 april 2027.
+                </p>
               </div>
 
-              <a
-                href="mailto:Lotte@scoutingpapendrecht.nl?subject=Aanmelding%20Vrijwillige%20Jury%20Badeendlympics%202027"
-                className="w-full py-3 bg-black text-white border-2 border-black font-display font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              <button
+                type="button"
+                onClick={() => onNavigate('jury-aanmelden')}
+                className="w-full py-3.5 bg-black text-white border-2 border-black font-display font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-slate-900 transition-colors shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer active:translate-x-0.5 active:translate-y-0.5"
               >
-                <Mail size={14} className="text-amber-400" />
-                STUUR E-MAIL NAAR LOTTE →
-              </a>
+                <UserCheck size={16} className="text-amber-400" />
+                AANMELDEN VIA DE JURYPAGINA →
+              </button>
             </div>
           </div>
         </div>

@@ -6,7 +6,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Team, ScoreEntry, SpelId, JuryMember } from '../types';
+import { Team, ScoreEntry, SpelId, JuryMember, FaqItem } from '../types';
 import { SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
 import { DEFAULT_JURY_MEMBERS } from '../data/juryAvatars';
 import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
@@ -14,14 +14,82 @@ import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
 const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
 const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
 const JURY_STORAGE_KEY = 'badeendlympics_jury_v1';
+const FAQS_STORAGE_KEY = 'badeendlympics_faqs_v1';
 const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
 const TEAM_SESSION_KEY = 'badeendlympics_team_session';
 const JURY_SESSION_KEY = 'badeendlympics_jury_session';
+
+export const DEFAULT_FAQS: FaqItem[] = [
+  {
+    id: 'faq-01',
+    question: 'Wie kan er meedoen aan de BADEENDLYMPICS?',
+    answer:
+      'Iedereen vanaf 18 jaar met een gezonde dosis humor, teamspirit en een lichte fascinatie voor gele badeenden en gezelligheid. Teams bestaan uit exact 4 personen. Ieder teamlid moet 18+ zijn voor deelname.',
+    order: 1,
+    category: 'Deelname',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-02',
+    question: 'Kan ik me aanmelden als vrijwillig jurylid?',
+    answer:
+      'Jazeker! Vrijwillige juryleden zijn onmisbaar voor de BADEENDLYMPICS 2027. Je kunt je eenvoudig direct online aanmelden via de officiële jurypagina op deze website. Kies een unieke badeend-avatar, stel je juryquote in en jureer mee!',
+    order: 2,
+    category: 'Jury',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-03',
+    question: 'Heb je algemene vragen of opmerkingen over het evenement?',
+    answer:
+      'Voor alle algemene vragen over de organisatie, het programma of inschrijvingen kun je direct contact opnemen via een e-mail naar Lotte@scoutingpapendrecht.nl.',
+    order: 3,
+    category: 'Organisatie',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-04',
+    question: 'Moeten we ons eigen bier of badeend meenemen?',
+    answer:
+      'Nee! De organisatie en Scouting Van Brederode verzorgen alle officiële wedstrijdbadeenden en benodigdheden voor de spellen. De bar in het clubgebouw is geopend voor een lekker koud drankje.',
+    order: 4,
+    category: 'Spelregels',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-05',
+    question: 'Wat kosten de inschrijvingen?',
+    answer:
+      'Inschrijven is geheel gratis en kan t/m 1 maart 2027. Eventuele kosten worden achteraf verrekend met de deelnemers.',
+    order: 5,
+    category: 'Kosten',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-06',
+    question: 'Wat winnen we als we eerste worden?',
+    answer:
+      'Eeuwige roem in Papendrecht en omstreken, de officiële BADEENDLYMPICS 2027 titel en een welverdiende goudgele rakker voor het winnende team!',
+    order: 6,
+    category: 'Prijzen',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+  {
+    id: 'faq-07',
+    question: 'Zijn toeschouwers welkom?',
+    answer:
+      'Zeker! Toegang voor supporters en toeschouwers is gratis. Er is volop muziek, sfeer en spektakel op het terrein van Scouting Papendrecht.',
+    order: 7,
+    category: 'Bezoekers',
+    updatedAt: '2027-01-01T12:00:00.000Z',
+  },
+];
 
 // In-memory cache for fast synchronous access
 let cachedTeams: Team[] = [];
 let cachedScores: ScoreEntry[] = [];
 let cachedJury: JuryMember[] = [];
+let cachedFaqs: FaqItem[] = [];
 let isFirestoreInitialized = false;
 
 // Load initial local data without hardcoded dummy entries
@@ -46,6 +114,13 @@ function initLocalCache() {
   } catch {
     cachedJury = DEFAULT_JURY_MEMBERS;
   }
+
+  try {
+    const rawFaqs = localStorage.getItem(FAQS_STORAGE_KEY);
+    cachedFaqs = rawFaqs ? JSON.parse(rawFaqs) : DEFAULT_FAQS;
+  } catch {
+    cachedFaqs = DEFAULT_FAQS;
+  }
 }
 
 initLocalCache();
@@ -64,6 +139,10 @@ export function getStoredScores(): ScoreEntry[] {
 
 export function getStoredJuryMembers(): JuryMember[] {
   return cachedJury;
+}
+
+export function getStoredFaqs(): FaqItem[] {
+  return [...cachedFaqs].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 }
 
 export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team[] {
@@ -107,6 +186,7 @@ export function initFirestoreSync() {
   const teamsCollection = collection(db, 'teams');
   const scoresCollection = collection(db, 'scores');
   const juryCollection = collection(db, 'jury_members');
+  const faqsCollection = collection(db, 'faqs');
 
   // Real-time listener for Teams from Firestore
   const unsubscribeTeams = onSnapshot(
@@ -180,10 +260,39 @@ export function initFirestoreSync() {
     }
   );
 
+  // Real-time listener for FAQs from Firestore
+  const unsubscribeFaqs = onSnapshot(
+    faqsCollection,
+    (snapshot) => {
+      const liveFaqs: FaqItem[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as FaqItem;
+        liveFaqs.push({
+          ...data,
+          id: docSnap.id,
+        });
+      });
+
+      if (liveFaqs.length > 0) {
+        liveFaqs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        cachedFaqs = liveFaqs;
+        localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(liveFaqs));
+      } else if (cachedFaqs.length === 0) {
+        cachedFaqs = DEFAULT_FAQS;
+        localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(DEFAULT_FAQS));
+      }
+      window.dispatchEvent(new Event('badeendlympics_data_change'));
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.GET, 'faqs');
+    }
+  );
+
   return () => {
     unsubscribeTeams();
     unsubscribeScores();
     unsubscribeJury();
+    unsubscribeFaqs();
   };
 }
 
@@ -636,6 +745,119 @@ export function deleteJuryMember(juryId: string): void {
   }
 
   window.dispatchEvent(new Event('badeendlympics_data_change'));
+}
+
+// --- FAQS STORAGE & SYNC ---
+
+export async function saveFaq(
+  faqData: Omit<FaqItem, 'id' | 'updatedAt'>
+): Promise<FaqItem> {
+  const newFaqId = `faq-${Date.now()}`;
+  const maxOrder = cachedFaqs.reduce((max, f) => Math.max(max, f.order ?? 0), 0);
+  const newFaq: FaqItem = {
+    id: newFaqId,
+    question: faqData.question.trim(),
+    answer: faqData.answer.trim(),
+    order: faqData.order !== undefined ? faqData.order : maxOrder + 1,
+    category: faqData.category ? faqData.category.trim() : 'Algemeen',
+    updatedAt: new Date().toISOString(),
+  };
+
+  cachedFaqs = [...cachedFaqs, newFaq].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(cachedFaqs));
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  try {
+    const cleanData = sanitizeForFirestore(newFaq);
+    await setDoc(doc(db, 'faqs', newFaqId), cleanData);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.CREATE, `faqs/${newFaqId}`);
+  }
+
+  return newFaq;
+}
+
+export async function updateFaq(
+  faqId: string,
+  updatedData: Partial<Omit<FaqItem, 'id'>>
+): Promise<FaqItem | null> {
+  const index = cachedFaqs.findIndex((f) => f.id === faqId);
+  if (index === -1) return null;
+
+  const oldFaq = cachedFaqs[index];
+  const updatedFaq: FaqItem = {
+    ...oldFaq,
+    question: updatedData.question !== undefined ? updatedData.question.trim() : oldFaq.question,
+    answer: updatedData.answer !== undefined ? updatedData.answer.trim() : oldFaq.answer,
+    order: updatedData.order !== undefined ? updatedData.order : oldFaq.order,
+    category: updatedData.category !== undefined ? updatedData.category?.trim() : oldFaq.category,
+    updatedAt: new Date().toISOString(),
+  };
+
+  cachedFaqs[index] = updatedFaq;
+  cachedFaqs.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(cachedFaqs));
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  try {
+    const cleanData = sanitizeForFirestore(updatedFaq);
+    await setDoc(doc(db, 'faqs', faqId), cleanData, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `faqs/${faqId}`);
+  }
+
+  return updatedFaq;
+}
+
+export function deleteFaq(faqId: string): void {
+  cachedFaqs = cachedFaqs.filter((f) => f.id !== faqId);
+  localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(cachedFaqs));
+
+  deleteDoc(doc(db, 'faqs', faqId)).catch((error) => {
+    handleFirestoreError(error, OperationType.DELETE, `faqs/${faqId}`);
+  });
+
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+}
+
+export async function reorderFaqs(newOrderedFaqs: FaqItem[]): Promise<void> {
+  const updated = newOrderedFaqs.map((f, idx) => ({
+    ...f,
+    order: idx + 1,
+    updatedAt: new Date().toISOString(),
+  }));
+
+  cachedFaqs = updated;
+  localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(cachedFaqs));
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  for (const faq of updated) {
+    try {
+      const cleanData = sanitizeForFirestore(faq);
+      await setDoc(doc(db, 'faqs', faq.id), cleanData, { merge: true });
+    } catch {
+      // safe
+    }
+  }
+}
+
+export async function resetFaqsToDefault(): Promise<void> {
+  for (const faq of cachedFaqs) {
+    deleteDoc(doc(db, 'faqs', faq.id)).catch(() => {});
+  }
+
+  cachedFaqs = [...DEFAULT_FAQS];
+  localStorage.setItem(FAQS_STORAGE_KEY, JSON.stringify(cachedFaqs));
+  window.dispatchEvent(new Event('badeendlympics_data_change'));
+
+  for (const defFaq of DEFAULT_FAQS) {
+    try {
+      const cleanData = sanitizeForFirestore(defFaq);
+      await setDoc(doc(db, 'faqs', defFaq.id), cleanData);
+    } catch {
+      // safe
+    }
+  }
 }
 
 /**

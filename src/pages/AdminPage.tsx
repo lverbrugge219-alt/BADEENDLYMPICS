@@ -5,6 +5,7 @@ import {
   getStoredTeams,
   getStoredScores,
   getStoredJuryMembers,
+  getStoredFaqs,
   updateJuryMember,
   deleteJuryMember,
   saveOrUpdateScore,
@@ -23,6 +24,7 @@ import {
 } from '../utils/analytics';
 import { SessionDetailModal } from '../components/SessionDetailModal';
 import { JuryAvatar } from '../components/JuryAvatar';
+import { AdminFaqSection } from '../components/AdminFaqSection';
 import {
   Trash2,
   CheckCircle2,
@@ -58,6 +60,7 @@ import {
   Crown,
   Star,
   Shield,
+  HelpCircle,
 } from 'lucide-react';
 
 interface AdminPageProps {
@@ -66,10 +69,11 @@ interface AdminPageProps {
 
 export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'scores' | 'jury' | 'analytics'>('scores');
+  const [activeTab, setActiveTab] = useState<'scores' | 'jury' | 'faq' | 'analytics'>('scores');
   const [teams, setTeams] = useState<Team[]>([]);
   const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [juryMembers, setJuryMembers] = useState<JuryMember[]>([]);
+  const [faqsCount, setFaqsCount] = useState<number>(() => getStoredFaqs().length);
   const [jurySearchQuery, setJurySearchQuery] = useState('');
   const [juryToDelete, setJuryToDelete] = useState<JuryMember | null>(null);
 
@@ -142,9 +146,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     const t = getStoredTeams();
     const s = getStoredScores();
     const j = getStoredJuryMembers();
+    const f = getStoredFaqs();
     setTeams(t);
     setScores(s);
     setJuryMembers(j);
+    setFaqsCount(f.length);
     if (t.length > 0 && !selectedTeamName) {
       setSelectedTeamName(t[0].name);
     }
@@ -349,6 +355,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                 ? 'SCOREBEHEER'
                 : activeTab === 'jury'
                 ? 'JURYBEHEER'
+                : activeTab === 'faq'
+                ? 'FAQ BEHEER'
                 : 'STATISTIEKEN & COOKIES'}
             </h1>
           </div>
@@ -376,6 +384,17 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                 }`}
               >
                 <Award size={14} /> JURY ({juryMembers.length})
+              </button>
+
+              <button
+                onClick={() => setActiveTab('faq')}
+                className={`px-3 py-1.5 font-display font-black text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-1.5 ${
+                  activeTab === 'faq'
+                    ? 'bg-amber-400 text-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]'
+                    : 'text-slate-700 hover:text-black'
+                }`}
+              >
+                <HelpCircle size={14} /> FAQ ({faqsCount})
               </button>
 
               <button
@@ -887,6 +906,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
               </div>
             )}
           </div>
+        )}
+
+        {/* -------------------- TAB: FAQ BEHEER -------------------- */}
+        {activeTab === 'faq' && (
+          <AdminFaqSection onNavigate={onNavigate} showToast={showToast} />
         )}
 
         {/* -------------------- TAB 2: ANALYTICS & STATISTIEKEN -------------------- */}
