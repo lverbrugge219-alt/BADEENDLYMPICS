@@ -1172,7 +1172,7 @@ export const WhackADuckGame: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t-2 border-slate-100 text-center mb-8">
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🐥</span>
-          <span className="font-bold text-[11px] block">Gele Eend</span>
+          <span className="font-bold text-[11px] block">Badeend</span>
           <span className="text-[10px] text-slate-600 font-bold">+10 pt</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
