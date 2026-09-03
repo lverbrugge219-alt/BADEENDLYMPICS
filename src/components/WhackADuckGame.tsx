@@ -1,8 +1,30 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, RotateCcw, Volume2, VolumeX, Trophy as TrophyIcon, Sparkles, Flame, Beer } from 'lucide-react';
+import {
+  Play,
+  RotateCcw,
+  Volume2,
+  VolumeX,
+  Trophy as TrophyIcon,
+  Sparkles,
+  Flame,
+  Zap,
+  Target,
+  Clock,
+  Medal,
+  Users,
+  CheckCircle2,
+  AlertCircle,
+  Crown,
+} from 'lucide-react';
+import { MinigameScore, Team } from '../types';
+import {
+  getStoredMinigameScores,
+  saveMinigameScore,
+  getStoredTeams,
+} from '../utils/storage';
 
 // Duck & Item types with points, duration, and styling
-type DuckType = 'standard' | 'pils' | 'trophy' | 'pirate';
+export type DuckType = 'standard' | 'pils' | 'trophy' | 'pirate' | 'golden';
 
 interface HoleState {
   id: number;
@@ -10,6 +32,7 @@ interface HoleState {
   duckType: DuckType;
   hit: boolean;
   hitScore?: number;
+  spawnTime?: number;
 }
 
 interface FloatingScore {
@@ -17,7 +40,7 @@ interface FloatingScore {
   holeId: number;
   score: number;
   text: string;
-  type: DuckType | 'penalty';
+  type: DuckType | 'penalty' | 'miss';
 }
 
 export const WhackADuckGame: React.FC = () => {
@@ -27,12 +50,27 @@ export const WhackADuckGame: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState(30);
   const [combo, setCombo] = useState(0);
   const [maxCombo, setMaxCombo] = useState(0);
-  const [highScore, setHighScore] = useState<number>(() => {
-    const saved = localStorage.getItem('badeend_whack_highscore');
-    return saved ? parseInt(saved, 10) : 0;
-  });
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [floatingScores, setFloatingScores] = useState<FloatingScore[]>([]);
+
+  // Statistics for competitive feedback
+  const [totalClicks, setTotalClicks] = useState(0);
+  const [successfulHits, setSuccessfulHits] = useState(0);
+  const [reactionTimes, setReactionTimes] = useState<number[]>([]);
+
+  // Submission & Leaderboard state
+  const [leaderboardScores, setLeaderboardScores] = useState<MinigameScore[]>(() =>
+    getStoredMinigameScores()
+  );
+  const [registeredTeams, setRegisteredTeams] = useState<Team[]>(() => getStoredTeams());
+  const [playerNameInput, setPlayerNameInput] = useState<string>(() => {
+    return localStorage.getItem('badeend_player_name') || '';
+  });
+  const [selectedTeamInput, setSelectedTeamInput] = useState<string>('');
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [scoreSubmitted, setScoreSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [activeLeaderboardTab, setActiveLeaderboardTab] = useState<'individual' | 'teams'>('individual');
 
   // 9 holes (3x3 grid)
   const [holes, setHoles] = useState<HoleState[]>(() =>
@@ -50,9 +88,29 @@ export const WhackADuckGame: React.FC = () => {
   const hideTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const nextFloatingId = useRef(1);
 
+  // Load real-time leaderboard data
+  const refreshScores = useCallback(() => {
+    setLeaderboardScores(getStoredMinigameScores());
+    setRegisteredTeams(getStoredTeams());
+  }, []);
+
+  useEffect(() => {
+    refreshScores();
+    window.addEventListener('badeendlympics_minigame_change', refreshScores);
+    window.addEventListener('badeendlympics_data_change', refreshScores);
+    return () => {
+      window.removeEventListener('badeendlympics_minigame_change', refreshScores);
+      window.removeEventListener('badeendlympics_data_change', refreshScores);
+    };
+  }, [refreshScores]);
+
+  // Determine current record (#1 on leaderboard or local record)
+  const topLeaderboardScore = leaderboardScores.length > 0 ? leaderboardScores[0].score : 0;
+  const topRecordHolder = leaderboardScores.length > 0 ? leaderboardScores[0].playerName : null;
+
   // Sound Synthesizer via Web Audio API
   const playSound = useCallback(
-    (type: 'squeak' | 'pils' | 'trophy' | 'penalty' | 'start' | 'gameover') => {
+    (type: 'squeak' | 'pils' | 'trophy' | 'golden' | 'penalty' | 'miss' | 'combo' | 'frenzy' | 'start' | 'gameover') => {
       if (!soundEnabled) return;
       try {
         const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -72,9 +130,9 @@ export const WhackADuckGame: React.FC = () => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'triangle';
-          osc.frequency.setValueAtTime(440, now);
-          osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-          osc.frequency.exponentialRampToValueAtTime(320, now + 0.18);
+          osc.frequency.setValueAtTime(460, now);
+          osc.frequency.exponentialRampToValueAtTime(920, now + 0.08);
+          osc.frequency.exponentialRampToValueAtTime(340, now + 0.18);
 
           gain.gain.setValueAtTime(0.2, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
@@ -95,7 +153,7 @@ export const WhackADuckGame: React.FC = () => {
           osc1.frequency.exponentialRampToValueAtTime(1046.5, now + 0.09); // C6
           osc2.frequency.setValueAtTime(1318.51, now); // E6
 
-          gain.gain.setValueAtTime(0.26, now);
+          gain.gain.setValueAtTime(0.25, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
           osc1.connect(gain);
@@ -117,7 +175,7 @@ export const WhackADuckGame: React.FC = () => {
           osc1.frequency.setValueAtTime(880, now + 0.07); // A5
           osc2.frequency.setValueAtTime(1174.66, now + 0.07); // D6
 
-          gain.gain.setValueAtTime(0.24, now);
+          gain.gain.setValueAtTime(0.22, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
           osc1.connect(gain);
@@ -127,13 +185,43 @@ export const WhackADuckGame: React.FC = () => {
           osc2.start(now);
           osc1.stop(now + 0.35);
           osc2.stop(now + 0.35);
+        } else if (type === 'golden') {
+          // Glorious fanfare for the Gouden Badeend
+          const freqs = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+          freqs.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+            gain.gain.setValueAtTime(0.2, now + idx * 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.05 + 0.3);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + idx * 0.05);
+            osc.stop(now + idx * 0.05 + 0.3);
+          });
+        } else if (type === 'miss') {
+          // Water splash miss sound
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(110, now + 0.12);
+
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
         } else if (type === 'penalty') {
-          // Low buzz / splash
+          // Low pirate penalty buzz
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(160, now);
-          osc.frequency.linearRampToValueAtTime(90, now + 0.25);
+          osc.frequency.setValueAtTime(170, now);
+          osc.frequency.linearRampToValueAtTime(80, now + 0.25);
 
           gain.gain.setValueAtTime(0.2, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
@@ -142,13 +230,43 @@ export const WhackADuckGame: React.FC = () => {
           gain.connect(ctx.destination);
           osc.start(now);
           osc.stop(now + 0.25);
+        } else if (type === 'combo') {
+          // Multiplier upgrade chime
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(880, now);
+          osc.frequency.exponentialRampToValueAtTime(1320, now + 0.15);
+
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'frenzy') {
+          // Frenzy mode alert
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.3);
         } else if (type === 'start') {
           // Start whistle
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
           osc.type = 'sine';
-          osc.frequency.setValueAtTime(600, now);
-          osc.frequency.linearRampToValueAtTime(900, now + 0.15);
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.linearRampToValueAtTime(880, now + 0.15);
 
           gain.gain.setValueAtTime(0.25, now);
           gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
@@ -173,8 +291,8 @@ export const WhackADuckGame: React.FC = () => {
             osc.stop(now + idx * 0.09 + 0.2);
           });
         }
-      } catch (e) {
-        // AudioContext ignored if blocked
+      } catch {
+        // AudioContext error ignored
       }
     },
     [soundEnabled]
@@ -192,32 +310,53 @@ export const WhackADuckGame: React.FC = () => {
   // Pop up a duck/item in random available hole
   const spawnDuck = useCallback(() => {
     setHoles((prevHoles) => {
-      // Find inactive holes
       const inactiveHoles = prevHoles.filter((h) => !h.active);
       if (inactiveHoles.length === 0) return prevHoles;
 
-      // Pick 1 to 2 random holes to activate
-      const randomCount = Math.random() > 0.65 && inactiveHoles.length > 2 ? 2 : 1;
+      // In the final 7 seconds (Gouden Frenzy), allow up to 3 ducks simultaneously!
+      const isFrenzy = timeLeft <= 7;
+      const maxSpawns = isFrenzy ? (inactiveHoles.length >= 3 ? 3 : 2) : inactiveHoles.length > 2 && Math.random() > 0.6 ? 2 : 1;
       const shuffled = [...inactiveHoles].sort(() => Math.random() - 0.5);
-      const chosen = shuffled.slice(0, randomCount);
+      const chosen = shuffled.slice(0, maxSpawns);
 
       const nextHoles = [...prevHoles];
+      const nowMs = Date.now();
 
       chosen.forEach((targetHole) => {
-        // Determine duck/item type based on probabilities
         const rand = Math.random();
         let duckType: DuckType = 'standard';
-        let stayDuration = 1100 + Math.random() * 400; // default 1.1s - 1.5s
+        let stayDuration = 1000 + Math.random() * 350;
 
-        if (rand < 0.20) {
-          duckType = 'pils'; // 20% chance: Pils!
-          stayDuration = 850;
-        } else if (rand < 0.42) {
-          duckType = 'trophy'; // 22% chance: Trofee
-          stayDuration = 750;
-        } else if (rand < 0.60) {
-          duckType = 'pirate'; // 18% chance: Piraat (penalty)
-          stayDuration = 1200;
+        if (isFrenzy) {
+          // In Gouden Frenzy: 35% chance for the Gouden Badeend!
+          if (rand < 0.35) {
+            duckType = 'golden';
+            stayDuration = 650; // Fast!
+          } else if (rand < 0.60) {
+            duckType = 'pils';
+            stayDuration = 700;
+          } else if (rand < 0.80) {
+            duckType = 'trophy';
+            stayDuration = 650;
+          } else {
+            duckType = 'pirate';
+            stayDuration = 1000;
+          }
+        } else {
+          // Standard phase
+          if (rand < 0.08) {
+            duckType = 'golden'; // 8% chance in normal time
+            stayDuration = 700;
+          } else if (rand < 0.26) {
+            duckType = 'pils'; // 18% Pils
+            stayDuration = 800;
+          } else if (rand < 0.46) {
+            duckType = 'trophy'; // 20% Trofee
+            stayDuration = 720;
+          } else if (rand < 0.64) {
+            duckType = 'pirate'; // 18% Piraat (penalty)
+            stayDuration = 1100;
+          }
         }
 
         const idx = nextHoles.findIndex((h) => h.id === targetHole.id);
@@ -227,9 +366,9 @@ export const WhackADuckGame: React.FC = () => {
             active: true,
             duckType,
             hit: false,
+            spawnTime: nowMs,
           };
 
-          // Schedule auto-hide
           if (hideTimersRef.current[targetHole.id]) {
             clearTimeout(hideTimersRef.current[targetHole.id]);
           }
@@ -244,14 +383,19 @@ export const WhackADuckGame: React.FC = () => {
 
       return nextHoles;
     });
-  }, []);
+  }, [timeLeft]);
 
-  // Main game countdown timer
+  // Main countdown timer
   useEffect(() => {
     if (!isPlaying) return;
 
     gameTimerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
+        if (prev === 8) {
+          // Announce Gouden Frenzy in the final 7 seconds
+          playSound('frenzy');
+        }
+
         if (prev <= 1) {
           setIsPlaying(false);
           setIsGameOver(true);
@@ -267,12 +411,12 @@ export const WhackADuckGame: React.FC = () => {
     };
   }, [isPlaying, playSound]);
 
-  // Spawning loop
+  // Spawning loop with acceleration
   useEffect(() => {
     if (!isPlaying) return;
 
-    // Faster spawns as time decreases
-    const speed = timeLeft > 15 ? 750 : timeLeft > 7 ? 600 : 480;
+    // Faster spawns during final frenzy
+    const speed = timeLeft <= 7 ? 400 : timeLeft > 18 ? 720 : 540;
 
     spawnTimerRef.current = setInterval(() => {
       spawnDuck();
@@ -283,14 +427,6 @@ export const WhackADuckGame: React.FC = () => {
     };
   }, [isPlaying, timeLeft, spawnDuck]);
 
-  // High score updater
-  useEffect(() => {
-    if (score > highScore) {
-      setHighScore(score);
-      localStorage.setItem('badeend_whack_highscore', score.toString());
-    }
-  }, [score, highScore]);
-
   // Start game
   const startGame = () => {
     clearHideTimers();
@@ -298,7 +434,12 @@ export const WhackADuckGame: React.FC = () => {
     setTimeLeft(30);
     setCombo(0);
     setMaxCombo(0);
+    setTotalClicks(0);
+    setSuccessfulHits(0);
+    setReactionTimes([]);
     setIsGameOver(false);
+    setScoreSubmitted(false);
+    setSubmitError(null);
     setFloatingScores([]);
     setHoles(
       Array.from({ length: 9 }, (_, i) => ({
@@ -311,87 +452,134 @@ export const WhackADuckGame: React.FC = () => {
     setIsPlaying(true);
     playSound('start');
 
-    // Spawn first item immediately
     setTimeout(() => {
       spawnDuck();
-    }, 200);
+    }, 150);
   };
 
-  // Stop / Reset game
-  const stopGame = () => {
-    setIsPlaying(false);
-    clearHideTimers();
-    if (gameTimerRef.current) clearInterval(gameTimerRef.current);
-    if (spawnTimerRef.current) clearInterval(spawnTimerRef.current);
-    setHoles((prev) => prev.map((h) => ({ ...h, active: false, hit: false })));
+  // Multiplier helper based on streak
+  const getMultiplier = (currentCombo: number): number => {
+    if (currentCombo >= 15) return 3.0;
+    if (currentCombo >= 10) return 2.0;
+    if (currentCombo >= 5) return 1.5;
+    return 1.0;
   };
 
-  // Hit item/duck handler
-  const handleDuckClick = (holeId: number) => {
+  const currentMultiplier = getMultiplier(combo);
+
+  // Click on a duck hole
+  const handleHoleClick = (holeId: number) => {
     if (!isPlaying) return;
 
-    setHoles((prev) => {
-      const hole = prev.find((h) => h.id === holeId);
-      if (!hole || !hole.active || hole.hit) return prev;
+    setTotalClicks((c) => c + 1);
 
-      let points = 10;
-      let text = '+10';
+    const targetHole = holes.find((h) => h.id === holeId);
 
-      if (hole.duckType === 'pils') {
-        points = 35;
-        text = '+35!';
-        playSound('pils');
-      } else if (hole.duckType === 'trophy') {
-        points = 20;
-        text = '+20!';
-        playSound('trophy');
-      } else if (hole.duckType === 'pirate') {
-        // Penalty duck!
-        points = -15;
-        text = '-15';
-        playSound('penalty');
-      } else {
-        playSound('squeak');
-      }
+    // ANTI-SPAM: Miss on empty water or already hit duck
+    if (!targetHole || !targetHole.active || targetHole.hit) {
+      playSound('miss');
+      setCombo(0); // Drops streak back to 1x multiplier
+      setScore((s) => Math.max(0, s - 5));
 
-      // Combo handling
-      if (hole.duckType === 'pirate') {
-        setCombo(0);
-      } else {
-        setCombo((prevCombo) => {
-          const next = prevCombo + 1;
-          if (next > maxCombo) setMaxCombo(next);
-          // Combo bonus for >= 5 hits
-          if (next >= 5 && next % 5 === 0) {
-            points += 10;
-            text += ' 🔥 COMBO!';
-          }
-          return next;
-        });
-      }
-
-      // Update score (do not go below 0)
-      setScore((s) => Math.max(0, s + points));
-
-      // Add floating score badge
       const floatId = nextFloatingId.current++;
       setFloatingScores((f) => [
         ...f,
         {
           id: floatId,
           holeId,
-          score: points,
+          score: -5,
+          text: 'MIS! -5',
+          type: 'miss',
+        },
+      ]);
+      setTimeout(() => {
+        setFloatingScores((f) => f.filter((item) => item.id !== floatId));
+      }, 700);
+      return;
+    }
+
+    // A valid duck was hit!
+    setHoles((prev) => {
+      const hole = prev.find((h) => h.id === holeId);
+      if (!hole || !hole.active || hole.hit) return prev;
+
+      const reactionTime = hole.spawnTime ? Date.now() - hole.spawnTime : 400;
+      setReactionTimes((rt) => [...rt, reactionTime]);
+      const isReflexBonus = reactionTime <= 350;
+
+      let basePoints = 10;
+      let text = '+10';
+
+      if (hole.duckType === 'golden') {
+        // Gouden Badeend!
+        basePoints = 75;
+        text = '+75! 👑 GOUDEN BADEEND!';
+        playSound('golden');
+      } else if (hole.duckType === 'pils') {
+        basePoints = 35;
+        text = '+35! 🍺';
+        playSound('pils');
+      } else if (hole.duckType === 'trophy') {
+        basePoints = 20;
+        text = '+20! 🏆';
+        playSound('trophy');
+      } else if (hole.duckType === 'pirate') {
+        // Penalty duck!
+        basePoints = -20;
+        text = '-20! 🏴‍☠️ GERAAPT!';
+        playSound('penalty');
+      } else {
+        playSound('squeak');
+      }
+
+      // Combo & Multiplier Calculation
+      let finalPoints = 0;
+      if (hole.duckType === 'pirate') {
+        setCombo(0);
+        finalPoints = -20;
+      } else {
+        setSuccessfulHits((h) => h + 1);
+        const nextCombo = combo + 1;
+        setCombo(nextCombo);
+        if (nextCombo > maxCombo) setMaxCombo(nextCombo);
+
+        const mult = getMultiplier(nextCombo);
+        finalPoints = Math.round(basePoints * mult);
+
+        if (isReflexBonus) {
+          finalPoints += 5;
+          text = `BLIKSEM REFLEX! +${finalPoints}`;
+        } else if (mult > 1.0) {
+          text = `${mult}x COMBO! +${finalPoints}`;
+        } else {
+          text = `+${finalPoints}`;
+        }
+
+        if (nextCombo === 5 || nextCombo === 10 || nextCombo === 15) {
+          playSound('combo');
+        }
+      }
+
+      // Update score (cannot go below 0)
+      setScore((s) => Math.max(0, s + finalPoints));
+
+      // Floating score badge
+      const floatId = nextFloatingId.current++;
+      setFloatingScores((f) => [
+        ...f,
+        {
+          id: floatId,
+          holeId,
+          score: finalPoints,
           text,
           type: hole.duckType === 'pirate' ? 'penalty' : hole.duckType,
         },
       ]);
-
-      // Remove floating score after animation
       setTimeout(() => {
         setFloatingScores((f) => f.filter((item) => item.id !== floatId));
       }, 700);
 
-      // Clear the auto-hide timer for this hole
+      // Clear auto-hide timer
       if (hideTimersRef.current[holeId]) {
         clearTimeout(hideTimersRef.current[holeId]);
       }
@@ -401,21 +589,103 @@ export const WhackADuckGame: React.FC = () => {
         setHoles((curr) =>
           curr.map((h) => (h.id === holeId ? { ...h, active: false, hit: false } : h))
         );
-      }, 250);
+      }, 220);
 
       return prev.map((h) =>
-        h.id === holeId ? { ...h, hit: true, hitScore: points } : h
+        h.id === holeId ? { ...h, hit: true, hitScore: finalPoints } : h
       );
     });
   };
+
+  // Performance metrics calculation
+  const accuracy = totalClicks > 0 ? Math.round((successfulHits / totalClicks) * 100) : 0;
+  const avgReactionTime =
+    reactionTimes.length > 0
+      ? Math.round(reactionTimes.reduce((a, b) => a + b, 0) / reactionTimes.length)
+      : 0;
+
+  const getRankTitle = (pts: number): string => {
+    if (pts >= 750) return 'Legendarische Meestermepper 👑';
+    if (pts >= 500) return 'Olympisch Badeend-Mepper 🥇';
+    if (pts >= 300) return 'Badmeester der Reflexen 🏊';
+    if (pts >= 150) return 'Snelle Snater 🦆';
+    return 'Plons-Amateur 🐣';
+  };
+
+  // Submit score to Leaderboard
+  const handleSubmitScore = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!playerNameInput.trim()) {
+      setSubmitError('Vul je naam of bijnaam in.');
+      return;
+    }
+
+    setIsSubmittingScore(true);
+    setSubmitError(null);
+
+    try {
+      localStorage.setItem('badeend_player_name', playerNameInput.trim());
+
+      await saveMinigameScore({
+        playerName: playerNameInput.trim(),
+        teamName: selectedTeamInput || undefined,
+        score,
+        accuracy,
+        maxStreak: maxCombo,
+        avgReactionTimeMs: avgReactionTime,
+        rankTitle: getRankTitle(score),
+      });
+
+      setScoreSubmitted(true);
+      refreshScores();
+    } catch (err) {
+      console.error('Error saving minigame score:', err);
+      setSubmitError('Er trad een fout op bij het opslaan. Probeer opnieuw.');
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  };
+
+  // Aggregate team standings
+  const teamStandings = React.useMemo(() => {
+    const map: Record<
+      string,
+      { teamName: string; totalScore: number; bestPlayer: string; bestScore: number; playerCount: number }
+    > = {};
+
+    leaderboardScores.forEach((item) => {
+      if (item.teamName && item.teamName.trim()) {
+        const tName = item.teamName.trim();
+        if (!map[tName]) {
+          map[tName] = {
+            teamName: tName,
+            totalScore: 0,
+            bestPlayer: item.playerName,
+            bestScore: item.score,
+            playerCount: 0,
+          };
+        }
+        map[tName].totalScore += item.score;
+        map[tName].playerCount += 1;
+        if (item.score > map[tName].bestScore) {
+          map[tName].bestScore = item.score;
+          map[tName].bestPlayer = item.playerName;
+        }
+      }
+    });
+
+    return Object.values(map).sort((a, b) => b.totalScore - a.totalScore);
+  }, [leaderboardScores]);
+
+  const isFrenzyActive = isPlaying && timeLeft <= 7;
 
   return (
     <div
       id="whack-a-duck-container"
       className="bg-white border-2 border-black p-5 sm:p-7 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden"
     >
-      {/* Top Banner with Badges */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b-2 border-slate-100">
+      {/* Top Banner with Badges & Record info */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5 pb-4 border-b-2 border-slate-100">
         <div className="flex items-center gap-2.5">
           <div className="w-10 h-10 bg-white border-2 border-black p-0.5 flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] select-none overflow-hidden">
             <img
@@ -427,16 +697,26 @@ export const WhackADuckGame: React.FC = () => {
           </div>
           <div>
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-sky-100 border border-sky-400 text-[10px] font-black uppercase tracking-wider text-sky-800 rounded-sm mb-0.5">
-              <Sparkles size={11} /> Officiële Teaser Game
+              <Sparkles size={11} /> Officiële Teaser Minigame
             </div>
             <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black leading-none">
-              BADEENDJES MEPPEN (TRAINING)
+              BADEENDJES MEPPEN (COMPETITIEF)
             </h3>
           </div>
         </div>
 
         {/* Action / Audio controls */}
         <div className="flex items-center gap-2">
+          {topLeaderboardScore > 0 && (
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 border-2 border-black text-xs font-black uppercase tracking-wider text-purple-950 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <TrophyIcon size={14} className="text-amber-500 fill-amber-400" />
+              <span>
+                Huidig record: {topLeaderboardScore} pt{' '}
+                {topRecordHolder && <span className="text-slate-500">({topRecordHolder})</span>}
+              </span>
+            </div>
+          )}
+
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`p-2 border-2 border-black font-display text-xs font-black uppercase flex items-center gap-1 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer transition-colors ${
@@ -450,8 +730,8 @@ export const WhackADuckGame: React.FC = () => {
         </div>
       </div>
 
-      {/* Dashboard Bar: Score, Time, Combo, High Score */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      {/* Competitive Dashboard Bar: Score, Time, Multiplier/Streak, Top Record */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
         {/* Score */}
         <div className="bg-amber-50 border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block mb-0.5">
@@ -464,70 +744,110 @@ export const WhackADuckGame: React.FC = () => {
 
         {/* Time Left */}
         <div
-          className={`border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-colors ${
-            timeLeft <= 5 && isPlaying
+          className={`border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all ${
+            isFrenzyActive
+              ? 'bg-amber-400 text-black animate-bounce-subtle ring-2 ring-amber-600'
+              : timeLeft <= 5 && isPlaying
               ? 'bg-rose-100 text-rose-900 animate-pulse'
               : 'bg-sky-50 text-sky-900'
           }`}
         >
-          <span className="text-[10px] font-black uppercase tracking-wider block mb-0.5">
-            TIJD OVER
-          </span>
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[10px] font-black uppercase tracking-wider">
+              {isFrenzyActive ? '⚡ FRENZY!' : 'TIJD OVER'}
+            </span>
+            {isFrenzyActive && <Crown size={14} className="text-amber-950 fill-amber-900 animate-spin" />}
+          </div>
           <div className="flex items-baseline gap-1">
             <span className="font-display font-black text-3xl leading-none text-black">
               {timeLeft}
             </span>
-            <span className="text-xs font-bold uppercase text-slate-500">sec</span>
+            <span className="text-xs font-bold uppercase text-slate-700">sec</span>
           </div>
         </div>
 
-        {/* Combo */}
-        <div className="bg-emerald-50 border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+        {/* Combo Multiplier */}
+        <div
+          className={`border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-colors ${
+            currentMultiplier >= 3.0
+              ? 'bg-rose-50 border-rose-600 ring-2 ring-rose-500'
+              : currentMultiplier >= 2.0
+              ? 'bg-orange-50 border-orange-600'
+              : currentMultiplier >= 1.5
+              ? 'bg-amber-50 border-amber-600'
+              : 'bg-emerald-50'
+          }`}
+        >
           <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-emerald-900">
-              STREAK
+            <span className="text-[10px] font-black uppercase tracking-wider text-black">
+              MULTIPLIER
             </span>
-            {combo >= 3 && <Flame size={14} className="text-amber-500 fill-amber-500 animate-bounce" />}
+            {combo >= 5 && <Flame size={14} className="text-orange-500 fill-orange-500 animate-bounce" />}
           </div>
           <div className="flex items-baseline gap-1.5">
-            <span className="font-display font-black text-3xl text-emerald-700 leading-none">
-              {combo}x
+            <span
+              className={`font-display font-black text-3xl leading-none ${
+                currentMultiplier >= 3.0
+                  ? 'text-rose-600'
+                  : currentMultiplier >= 2.0
+                  ? 'text-orange-600'
+                  : currentMultiplier >= 1.5
+                  ? 'text-amber-600'
+                  : 'text-emerald-700'
+              }`}
+            >
+              {currentMultiplier.toFixed(1)}x
             </span>
-            {combo >= 5 && (
-              <span className="text-[10px] font-black uppercase bg-amber-400 border border-black px-1">
-                BONUS!
-              </span>
-            )}
+            <span className="text-[10px] font-black uppercase text-slate-600">
+              ({combo} streak)
+            </span>
           </div>
         </div>
 
-        {/* High Score */}
+        {/* Record to beat */}
         <div className="bg-purple-50 border-2 border-black p-3 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
           <div className="flex items-center justify-between mb-0.5">
             <span className="text-[10px] font-black uppercase tracking-wider text-purple-900">
-              RECORD
+              HUIDIG RECORD
             </span>
             <TrophyIcon size={14} className="text-amber-500 fill-amber-400" />
           </div>
           <span className="font-display font-black text-3xl text-purple-950 leading-none block">
-            {highScore}
+            {topLeaderboardScore > 0 ? topLeaderboardScore : 0}
           </span>
         </div>
       </div>
 
+      {/* Frenzy Alert Banner in the final 7 seconds */}
+      {isFrenzyActive && (
+        <div className="mb-3 px-3 py-1.5 bg-amber-400 border-2 border-black flex items-center justify-between text-black font-display font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
+          <span className="flex items-center gap-1.5">
+            <Crown size={15} className="fill-black text-black" />
+            GOUDEN FRENZY ACTIEF: VANG DE GOUDEN BADEEND VOOR +75 PT!
+          </span>
+          <span className="text-[11px] bg-black text-amber-400 px-2 py-0.5">
+            {timeLeft}s OVER
+          </span>
+        </div>
+      )}
+
       {/* Progress Bar of Time */}
-      <div className="w-full bg-slate-200 border-2 border-black h-3 mb-6 overflow-hidden">
+      <div className="w-full bg-slate-200 border-2 border-black h-3 mb-5 overflow-hidden">
         <div
           className={`h-full transition-all duration-300 ${
-            timeLeft > 10 ? 'bg-amber-400' : timeLeft > 5 ? 'bg-orange-500' : 'bg-rose-500'
+            isFrenzyActive ? 'bg-amber-400 animate-pulse' : timeLeft > 10 ? 'bg-sky-500' : 'bg-rose-500'
           }`}
           style={{ width: `${(timeLeft / 30) * 100}%` }}
         />
       </div>
 
-      {/* Main Whack-a-Mole Arena: 3x3 Grid of Water Ponds */}
-      <div className="relative bg-sky-100 border-2 border-black p-4 sm:p-6 rounded-none shadow-[inset_0px_4px_8px_rgba(0,0,0,0.06)] mb-6 select-none">
-        {/* Subtle Water Ripples Decoration */}
+      {/* Main Arena: 3x3 Grid of Water Ponds with Anti-Spam clicking */}
+      <div
+        className={`relative border-2 border-black p-4 sm:p-6 shadow-[inset_0px_4px_8px_rgba(0,0,0,0.06)] mb-6 select-none transition-colors duration-300 ${
+          isFrenzyActive ? 'bg-amber-100/70 ring-4 ring-amber-400' : 'bg-sky-100'
+        }`}
+      >
+        {/* Water Ripples Decoration */}
         <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#0284c7_1px,transparent_1px)] [background-size:16px_16px]" />
 
         <div className="grid grid-cols-3 gap-3 sm:gap-5 relative z-10 max-w-md mx-auto">
@@ -538,17 +858,25 @@ export const WhackADuckGame: React.FC = () => {
               <div
                 key={hole.id}
                 id={`duck-hole-${hole.id}`}
-                onClick={() => handleDuckClick(hole.id)}
-                className="relative aspect-square bg-sky-200 border-2 border-black flex flex-col items-center justify-end overflow-hidden cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-sky-300/80 active:translate-y-0.5 active:translate-x-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all group"
+                onClick={() => handleHoleClick(hole.id)}
+                className={`relative aspect-square border-2 border-black flex flex-col items-center justify-end overflow-hidden cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-0.5 active:translate-x-0.5 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all group ${
+                  isFrenzyActive
+                    ? 'bg-amber-200 hover:bg-amber-300'
+                    : 'bg-sky-200 hover:bg-sky-300/80'
+                }`}
               >
-                {/* Floating Score Pop-up on Hit */}
+                {/* Floating Score Pop-up on Hit or Miss */}
                 {floating && (
                   <div
-                    className={`absolute top-2 z-30 font-display font-black text-sm sm:text-base border border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-75 duration-200 ${
-                      floating.type === 'penalty'
+                    className={`absolute top-2 z-30 font-display font-black text-xs sm:text-sm border border-black px-1.5 py-0.5 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-75 duration-200 whitespace-nowrap ${
+                      floating.type === 'miss'
+                        ? 'bg-rose-600 text-white'
+                        : floating.type === 'penalty'
                         ? 'bg-rose-500 text-white'
+                        : floating.type === 'golden'
+                        ? 'bg-amber-400 text-black ring-2 ring-black'
                         : floating.type === 'pils'
-                        ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-600'
+                        ? 'bg-amber-300 text-amber-950 ring-2 ring-amber-600'
                         : floating.type === 'trophy'
                         ? 'bg-yellow-300 text-yellow-950 ring-2 ring-yellow-500'
                         : 'bg-white text-black'
@@ -568,7 +896,7 @@ export const WhackADuckGame: React.FC = () => {
                       : 'translate-y-16 opacity-0 scale-50 pointer-events-none'
                   }`}
                 >
-                  {/* Visuals based on Type */}
+                  {/* Standard Gele Badeend */}
                   {hole.duckType === 'standard' && (
                     <div className="flex flex-col items-center animate-bounce-subtle">
                       <span className="text-4xl sm:text-5xl drop-shadow-md filter">🐥</span>
@@ -578,6 +906,7 @@ export const WhackADuckGame: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Koude Pils! */}
                   {hole.duckType === 'pils' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
@@ -590,6 +919,7 @@ export const WhackADuckGame: React.FC = () => {
                     </div>
                   )}
 
+                  {/* Gouden Trofee */}
                   {hole.duckType === 'trophy' && (
                     <div className="flex flex-col items-center">
                       <div className="relative animate-pulse">
@@ -597,58 +927,171 @@ export const WhackADuckGame: React.FC = () => {
                         <span className="absolute -top-1 -left-1 text-xs">⭐</span>
                       </div>
                       <span className="text-[9px] font-black uppercase bg-yellow-300 text-yellow-950 border border-black px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                        🏆 +20!
+                        +20!
                       </span>
                     </div>
                   )}
 
+                  {/* De Gouden Badeend (Super Bonus) */}
+                  {hole.duckType === 'golden' && (
+                    <div className="flex flex-col items-center">
+                      <div className="relative animate-bounce">
+                        <span className="text-4xl sm:text-5xl drop-shadow-lg filter drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]">
+                          👑
+                        </span>
+                        <span className="text-4xl sm:text-5xl -mt-4 block">🦆</span>
+                        <span className="absolute -top-2 -right-2 text-sm animate-spin">✨</span>
+                      </div>
+                      <span className="text-[9px] font-black uppercase bg-black text-amber-400 border border-amber-400 px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        GOUDEN BADEEND! +75
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Piraat Badeend (Penalty) */}
                   {hole.duckType === 'pirate' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
                         <span className="text-4xl sm:text-5xl drop-shadow-md">🏴‍☠️</span>
                       </div>
                       <span className="text-[9px] font-black uppercase bg-rose-500 text-white border border-black px-1 mt-0.5">
-                        PAS OP! -15
+                        PAS OP! -20
                       </span>
                     </div>
                   )}
                 </div>
 
                 {/* Water Ring / Pool Base Trim */}
-                <div className="w-full bg-sky-400 border-t-2 border-black py-1 px-2 flex items-center justify-between text-[9px] font-black text-sky-950 uppercase tracking-tighter shrink-0 select-none">
+                <div
+                  className={`w-full border-t-2 border-black py-1 px-2 flex items-center justify-between text-[9px] font-black uppercase tracking-tighter shrink-0 select-none ${
+                    isFrenzyActive ? 'bg-amber-400 text-black' : 'bg-sky-400 text-sky-950'
+                  }`}
+                >
                   <span>PLONS #{hole.id + 1}</span>
-                  <div className="w-2 h-2 rounded-full bg-sky-200 border border-black" />
+                  <div className="w-2 h-2 rounded-full bg-white border border-black" />
                 </div>
               </div>
             );
           })}
         </div>
 
-        {/* Start / Game Over Overlay */}
+        {/* Start / Game Over Modal Overlay */}
         {!isPlaying && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center z-20 overflow-y-auto">
             {isGameOver ? (
-              <div className="bg-white border-2 border-black p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-90 duration-200">
-                <div className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black mb-1">
-                  TIJD IS OM!
+              <div className="bg-white border-2 border-black p-5 sm:p-7 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in zoom-in-95 duration-200 text-left my-auto">
+                <div className="text-center pb-3 border-b-2 border-black mb-4">
+                  <div className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black leading-none mb-1">
+                    TIJD IS OM!
+                  </div>
+                  <div className="inline-block px-3 py-1 bg-amber-400 border border-black text-xs font-display font-black uppercase tracking-wider text-black mt-1">
+                    {getRankTitle(score)}
+                  </div>
                 </div>
-                <p className="text-xs font-semibold text-slate-600 mb-4">
-                  Goede reactiesnelheid voor de mystery discipline!
-                </p>
 
-                <div className="bg-amber-100 border-2 border-black p-3 mb-5">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-900 block mb-1">
-                    JOUW EINDSCORE
-                  </span>
-                  <span className="font-display font-black text-4xl text-black leading-none block">
-                    {score} PUNTEN
-                  </span>
-                  {score >= highScore && score > 0 && (
-                    <span className="inline-block mt-2 px-2 py-0.5 bg-purple-600 text-white text-[10px] font-black uppercase tracking-wider">
-                      🎉 NIEUW PERSOONLIJK RECORD!
+                {/* Post Game Stats Grid */}
+                <div className="grid grid-cols-3 gap-2 mb-4 text-center">
+                  <div className="bg-amber-50 border-2 border-black p-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 block">
+                      SCORE
                     </span>
-                  )}
+                    <span className="font-display font-black text-2xl text-black block leading-none mt-0.5">
+                      {score}
+                    </span>
+                  </div>
+
+                  <div className="bg-sky-50 border-2 border-black p-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-950 block">
+                      PRECISIE
+                    </span>
+                    <span className="font-display font-black text-2xl text-sky-900 block leading-none mt-0.5">
+                      {accuracy}%
+                    </span>
+                  </div>
+
+                  <div className="bg-emerald-50 border-2 border-black p-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-950 block">
+                      MAX STREAK
+                    </span>
+                    <span className="font-display font-black text-2xl text-emerald-700 block leading-none mt-0.5">
+                      {maxCombo}x
+                    </span>
+                  </div>
                 </div>
+
+                {/* Additional metrics */}
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-600 mb-4 px-1">
+                  <span>Gem. reactietijd: <strong>{avgReactionTime} ms</strong></span>
+                  <span>Rake tikken: <strong>{successfulHits} van {totalClicks}</strong></span>
+                </div>
+
+                {/* Submit to Live Leaderboard Form */}
+                {!scoreSubmitted ? (
+                  <form onSubmit={handleSubmitScore} className="bg-slate-50 border-2 border-black p-3.5 mb-4">
+                    <span className="font-display font-black text-xs uppercase tracking-wider text-black block mb-2">
+                      🏆 PLAATS JE SCORE OP HET LEADERBOARD:
+                    </span>
+
+                    {submitError && (
+                      <div className="mb-2 p-2 bg-rose-50 border border-rose-500 text-rose-800 text-xs font-bold flex items-center gap-1.5">
+                        <AlertCircle size={14} /> {submitError}
+                      </div>
+                    )}
+
+                    <div className="space-y-2 mb-3">
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-0.5">
+                          JOUW NAAM / BIJNAAM *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          maxLength={40}
+                          value={playerNameInput}
+                          onChange={(e) => setPlayerNameInput(e.target.value)}
+                          placeholder="Bijv. Tim de Mepper"
+                          className="w-full px-2.5 py-1.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-0.5">
+                          TEAM VERTEGENWOORDIGEN (OPTIONEEL)
+                        </label>
+                        <select
+                          value={selectedTeamInput}
+                          onChange={(e) => setSelectedTeamInput(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none"
+                        >
+                          <option value="">-- Geen team / Individueel --</option>
+                          {registeredTeams.map((t) => (
+                            <option key={t.id} value={t.name}>
+                              {t.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isSubmittingScore}
+                      className="w-full py-2 bg-black text-amber-400 hover:bg-slate-900 border-2 border-black font-display font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {isSubmittingScore ? 'BEZIG MET OPSLAAN...' : 'SCORE VERZENDEN NAAR LEADERBOARD →'}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="bg-emerald-50 border-2 border-emerald-600 p-3 mb-4 text-center">
+                    <CheckCircle2 size={24} className="text-emerald-600 mx-auto mb-1" />
+                    <span className="font-display font-black text-xs uppercase tracking-wider text-emerald-950 block">
+                      SCORE SUCCESVOL VERZONDEN! 🎉
+                    </span>
+                    <span className="text-[11px] text-emerald-800 font-semibold block mt-0.5">
+                      Je score is live toegevoegd aan het officiële minigame leaderboard hieronder.
+                    </span>
+                  </div>
+                )}
 
                 <button
                   id="whack-a-duck-restart-btn"
@@ -659,7 +1102,7 @@ export const WhackADuckGame: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="bg-white border-2 border-black p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+              <div className="bg-white border-2 border-black p-6 max-w-sm w-full shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] text-center">
                 <div className="w-16 h-16 bg-white border-2 border-black mx-auto mb-3 p-1 flex items-center justify-center shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
                   <img
                     src="/hammer-duck.png"
@@ -668,19 +1111,24 @@ export const WhackADuckGame: React.FC = () => {
                     className="w-full h-full object-contain"
                   />
                 </div>
-                <div className="font-display font-black text-2xl uppercase tracking-tight text-black mb-2">
-                  KLAAR VOOR DE TRAINING?
+                <div className="font-display font-black text-2xl uppercase tracking-tight text-black mb-1">
+                  KLAAR VOOR DE STRIJD?
                 </div>
-                <p className="text-xs text-slate-600 font-medium mb-4 leading-relaxed">
-                  Tik binnen 30 seconden op zoveel mogelijk gele badeendjes, koude glazen <strong>Pils!</strong> en gouden <strong>Trofeeën</strong>. Pas op voor de pirateneenden!
+                <p className="text-xs text-slate-600 font-medium mb-3 leading-relaxed">
+                  Meppen vereist precisie: misklikken kost 5 punten en verbreekt je streak! Vang in de slotfase de <strong>Gouden Badeend (+75 pt)</strong>.
                 </p>
+
+                <div className="bg-amber-50 border-2 border-black p-2.5 mb-4 text-xs font-bold text-amber-950 flex items-center justify-around">
+                  <span>🔥 Multiplier tot 3x</span>
+                  <span>⚡ Snelle reflex bonus</span>
+                </div>
 
                 <button
                   id="whack-a-duck-start-btn"
                   onClick={startGame}
                   className="w-full py-3.5 bg-amber-400 hover:bg-amber-300 border-2 border-black font-display font-black text-sm uppercase tracking-wider text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center gap-2 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none"
                 >
-                  <Play size={18} fill="currentColor" /> START DE TEASER GAME
+                  <Play size={18} fill="currentColor" /> START DE COMPETITIE
                 </button>
               </div>
             )}
@@ -688,28 +1136,215 @@ export const WhackADuckGame: React.FC = () => {
         )}
       </div>
 
-      {/* Legend & Spel 1 Teaser Hook */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t-2 border-slate-100 text-center">
+      {/* Item Guide & Scoring Legend */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t-2 border-slate-100 text-center mb-8">
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🐥</span>
           <span className="font-bold text-[11px] block">Gele Eend</span>
-          <span className="text-[10px] text-slate-500 font-bold">+10 pt</span>
+          <span className="text-[10px] text-slate-600 font-bold">+10 pt</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🍺</span>
           <span className="font-bold text-[11px] block">Pils!</span>
-          <span className="text-[10px] text-amber-600 font-black">+35 pt (bonus)</span>
+          <span className="text-[10px] text-amber-600 font-black">+35 pt (snel)</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🏆</span>
           <span className="font-bold text-[11px] block">Trofee</span>
-          <span className="text-[10px] text-yellow-700 font-black">+20 pt (snel)</span>
+          <span className="text-[10px] text-yellow-700 font-black">+20 pt</span>
+        </div>
+        <div className="p-2 bg-amber-50 border-2 border-black text-xs shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+          <span className="text-lg block mb-0.5">👑🦆</span>
+          <span className="font-black text-[11px] block text-black">Gouden Badeend</span>
+          <span className="text-[10px] text-amber-800 font-black">+75 pt (frenzy)</span>
         </div>
         <div className="p-2 bg-slate-50 border border-black/20 text-xs">
           <span className="text-lg block mb-0.5">🏴‍☠️</span>
           <span className="font-bold text-[11px] block">Piraat</span>
-          <span className="text-[10px] text-rose-600 font-black">-15 pt (ontwijk)</span>
+          <span className="text-[10px] text-rose-600 font-black">-20 pt (ontwijk)</span>
         </div>
+      </div>
+
+      {/* --- LIVE PUBLIC LEADERBOARD SECTION --- */}
+      <div id="minigame-leaderboard" className="pt-6 border-t-2 border-black">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-amber-400 border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+              <TrophyIcon size={16} />
+            </div>
+            <div>
+              <h4 className="font-display font-black text-lg uppercase tracking-tight text-black">
+                LEADERBOARD BADEENDJES MEPPEN
+              </h4>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                Live ranglijst & teamstrijd
+              </span>
+            </div>
+          </div>
+
+          {/* Toggle Tab: Individual vs Teams */}
+          <div className="flex items-center bg-slate-100 border-2 border-black p-0.5">
+            <button
+              onClick={() => setActiveLeaderboardTab('individual')}
+              className={`px-3 py-1 text-xs font-display font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                activeLeaderboardTab === 'individual'
+                  ? 'bg-black text-amber-400'
+                  : 'text-slate-700 hover:text-black'
+              }`}
+            >
+              Top 10 Meppers
+            </button>
+            <button
+              onClick={() => setActiveLeaderboardTab('teams')}
+              className={`px-3 py-1 text-xs font-display font-black uppercase tracking-wider cursor-pointer transition-colors ${
+                activeLeaderboardTab === 'teams'
+                  ? 'bg-black text-amber-400'
+                  : 'text-slate-700 hover:text-black'
+              }`}
+            >
+              Teamklassement
+            </button>
+          </div>
+        </div>
+
+        {/* Tab 1: Top 10 Individual */}
+        {activeLeaderboardTab === 'individual' && (
+          <div>
+            {leaderboardScores.length === 0 ? (
+              <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 text-center text-xs font-semibold text-slate-600">
+                Er zijn nog geen scores ingediend. Speel de minigame en vestig het allereerste record!
+              </div>
+            ) : (
+              <div className="border-2 border-black overflow-hidden bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr className="bg-black text-white font-display font-black text-[11px] uppercase tracking-wider border-b-2 border-black">
+                        <th className="py-2.5 px-3 w-12 text-center">#</th>
+                        <th className="py-2.5 px-3">Deelnemer</th>
+                        <th className="py-2.5 px-3">Team</th>
+                        <th className="py-2.5 px-3 text-right">Score</th>
+                        <th className="py-2.5 px-3 text-right hidden sm:table-cell">Precisie</th>
+                        <th className="py-2.5 px-3 text-right hidden sm:table-cell">Streak</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-bold">
+                      {leaderboardScores.slice(0, 10).map((entry, idx) => {
+                        const isGold = idx === 0;
+                        const isSilver = idx === 1;
+                        const isBronze = idx === 2;
+
+                        return (
+                          <tr
+                            key={entry.id}
+                            className={`hover:bg-slate-50 transition-colors ${
+                              isGold ? 'bg-amber-50/70 font-black' : ''
+                            }`}
+                          >
+                            <td className="py-2.5 px-3 text-center">
+                              {isGold ? (
+                                <span className="inline-flex items-center justify-center w-6 h-6 bg-amber-400 border border-black text-xs font-black rounded-full">
+                                  1
+                                </span>
+                              ) : isSilver ? (
+                                <span className="inline-flex items-center justify-center w-6 h-6 bg-slate-200 border border-black text-xs font-black rounded-full">
+                                  2
+                                </span>
+                              ) : isBronze ? (
+                                <span className="inline-flex items-center justify-center w-6 h-6 bg-amber-700 text-white border border-black text-xs font-black rounded-full">
+                                  3
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 font-display font-black">
+                                  {idx + 1}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-black">
+                              <div className="flex items-center gap-1.5">
+                                <span>{entry.playerName}</span>
+                                {isGold && <Crown size={13} className="text-amber-500 fill-amber-400" />}
+                              </div>
+                              {entry.rankTitle && (
+                                <span className="text-[10px] text-slate-500 font-medium block">
+                                  {entry.rankTitle}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-700">
+                              {entry.teamName ? (
+                                <span className="inline-block px-1.5 py-0.5 bg-slate-100 border border-slate-300 text-[10px] uppercase tracking-wider text-black">
+                                  {entry.teamName}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 text-[11px]">Individueel</span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-right font-display font-black text-sm text-black">
+                              {entry.score} pt
+                            </td>
+                            <td className="py-2.5 px-3 text-right hidden sm:table-cell text-slate-600">
+                              {entry.accuracy ? `${entry.accuracy}%` : '-'}
+                            </td>
+                            <td className="py-2.5 px-3 text-right hidden sm:table-cell text-slate-600">
+                              {entry.maxStreak ? `${entry.maxStreak}x` : '-'}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab 2: Team Standings */}
+        {activeLeaderboardTab === 'teams' && (
+          <div>
+            {teamStandings.length === 0 ? (
+              <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-300 text-center text-xs font-semibold text-slate-600">
+                Nog geen teamscores vastgelegd. Speel een potje en kies jouw team om punten te verzamelen voor het klassement!
+              </div>
+            ) : (
+              <div className="border-2 border-black overflow-hidden bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-black text-white font-display font-black text-[11px] uppercase tracking-wider border-b-2 border-black">
+                      <th className="py-2.5 px-3 w-12 text-center">#</th>
+                      <th className="py-2.5 px-3">Team</th>
+                      <th className="py-2.5 px-3 text-right">Totaal Punten</th>
+                      <th className="py-2.5 px-3 text-right hidden sm:table-cell">Top Mepper</th>
+                      <th className="py-2.5 px-3 text-right hidden sm:table-cell">Aantal Meppers</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-bold">
+                    {teamStandings.map((team, idx) => (
+                      <tr key={team.teamName} className="hover:bg-slate-50 transition-colors">
+                        <td className="py-2.5 px-3 text-center font-display font-black">
+                          {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : idx + 1}
+                        </td>
+                        <td className="py-2.5 px-3 text-black font-black uppercase tracking-tight">
+                          {team.teamName}
+                        </td>
+                        <td className="py-2.5 px-3 text-right font-display font-black text-sm text-black">
+                          {team.totalScore} pt
+                        </td>
+                        <td className="py-2.5 px-3 text-right hidden sm:table-cell text-slate-700">
+                          {team.bestPlayer} ({team.bestScore} pt)
+                        </td>
+                        <td className="py-2.5 px-3 text-right hidden sm:table-cell text-slate-600">
+                          {team.playerCount}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

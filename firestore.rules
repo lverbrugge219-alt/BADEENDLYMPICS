@@ -39,6 +39,11 @@ service cloud.firestore {
              data.answer is string && data.answer.size() > 0 && data.answer.size() <= 2000;
     }
 
+    function isValidMinigameScore(data) {
+      return data.playerName is string && data.playerName.size() > 0 && data.playerName.size() <= 50 &&
+             data.score is number && data.score >= 0 && data.score <= 100000;
+    }
+
     // Teams Collection
     match /teams/{teamId} {
       allow read: if true;
@@ -69,6 +74,14 @@ service cloud.firestore {
       allow create: if isValidId(faqId) && isValidFaq(incoming());
       allow update: if isValidId(faqId) && isValidFaq(incoming());
       allow delete: if isValidId(faqId);
+    }
+
+    // Minigame Scores Collection (Public competitive leaderboard for Badeendjes Meppen)
+    match /minigame_scores/{scoreId} {
+      allow read: if true;
+      allow create: if isValidId(scoreId) && isValidMinigameScore(incoming());
+      allow update: if isValidId(scoreId) && isValidMinigameScore(incoming());
+      allow delete: if isValidId(scoreId);
     }
 
     // Analytics Events Collection (for anonymous cookie usage tracking)

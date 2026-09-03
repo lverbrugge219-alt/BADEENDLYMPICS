@@ -126,4 +126,16 @@ export interface AdminAuthResponse {
   lockedUntil?: number;
 }
 
+export interface MinigameScore {
+  id: string;
+  playerName: string;
+  teamName?: string;
+  score: number;
+  accuracy: number;
+  maxStreak: number;
+  avgReactionTimeMs?: number;
+  rankTitle?: string;
+  createdAt: string;
+}
+
 

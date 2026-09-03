@@ -187,6 +187,53 @@
         }
       },
       "required": ["id", "question", "answer"]
+    },
+    "MinigameScore": {
+      "title": "MinigameScore",
+      "description": "Highscore record for the competitive Badeendjes Meppen teaser minigame.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the minigame score record."
+        },
+        "playerName": {
+          "type": "string",
+          "description": "Nickname or name of the player.",
+          "maxLength": 50
+        },
+        "teamName": {
+          "type": "string",
+          "description": "Optional team name the player represents.",
+          "maxLength": 100
+        },
+        "score": {
+          "type": "number",
+          "description": "Total final points achieved in the minigame."
+        },
+        "accuracy": {
+          "type": "number",
+          "description": "Accuracy percentage of successful hits."
+        },
+        "maxStreak": {
+          "type": "number",
+          "description": "Maximum hit streak / combo multiplier attained."
+        },
+        "avgReactionTimeMs": {
+          "type": "number",
+          "description": "Average reaction time in milliseconds."
+        },
+        "rankTitle": {
+          "type": "string",
+          "description": "Earned Olympic rank title.",
+          "maxLength": 100
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when the score was recorded."
+        }
+      },
+      "required": ["id", "playerName", "score", "createdAt"]
     }
   },
   "firestore": {
@@ -213,6 +260,12 @@
         "$ref": "#/entities/FaqItem"
       },
       "description": "Collection of frequently asked questions managed by the organization."
+    },
+    "/minigame_scores/{scoreId}": {
+      "schema": {
+        "$ref": "#/entities/MinigameScore"
+      },
+      "description": "Collection of public competitive leaderboard scores for Badeendjes Meppen."
     }
   }
 }

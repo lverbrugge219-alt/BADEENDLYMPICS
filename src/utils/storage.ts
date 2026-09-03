@@ -6,7 +6,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Team, ScoreEntry, SpelId, JuryMember, FaqItem, AdminSession, AdminAuthResponse } from '../types';
+import { Team, ScoreEntry, SpelId, JuryMember, FaqItem, AdminSession, AdminAuthResponse, MinigameScore } from '../types';
 import { SPELEN } from '../data/mockData';
 import { DEFAULT_JURY_MEMBERS } from '../data/juryAvatars';
 import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
@@ -15,6 +15,7 @@ const TEAMS_STORAGE_KEY = 'badeendlympics_teams_v5';
 const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
 const JURY_STORAGE_KEY = 'badeendlympics_jury_v1';
 const FAQS_STORAGE_KEY = 'badeendlympics_faqs_v1';
+const MINIGAME_STORAGE_KEY = 'badeendlympics_minigame_scores_v1';
 const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
 const ADMIN_TOKEN_KEY = 'badeendlympics_admin_token';
 const ADMIN_SESSION_DATA_KEY = 'badeendlympics_admin_data';
@@ -92,6 +93,7 @@ let cachedTeams: Team[] = [];
 let cachedScores: ScoreEntry[] = [];
 let cachedJury: JuryMember[] = [];
 let cachedFaqs: FaqItem[] = [];
+let cachedMinigameScores: MinigameScore[] = [];
 let isFirestoreInitialized = false;
 
 // Load initial local data without hardcoded dummy entries
@@ -123,6 +125,13 @@ function initLocalCache() {
   } catch {
     cachedFaqs = DEFAULT_FAQS;
   }
+
+  try {
+    const rawMinigame = localStorage.getItem(MINIGAME_STORAGE_KEY);
+    cachedMinigameScores = rawMinigame ? JSON.parse(rawMinigame) : [];
+  } catch {
+    cachedMinigameScores = [];
+  }
 }
 
 initLocalCache();
@@ -145,6 +154,10 @@ export function getStoredJuryMembers(): JuryMember[] {
 
 export function getStoredFaqs(): FaqItem[] {
   return [...cachedFaqs].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+}
+
+export function getStoredMinigameScores(): MinigameScore[] {
+  return [...cachedMinigameScores].sort((a, b) => b.score - a.score);
 }
 
 export function recalculateTeamTotals(teams: Team[], scores: ScoreEntry[]): Team[] {
@@ -189,6 +202,7 @@ export function initFirestoreSync() {
   const scoresCollection = collection(db, 'scores');
   const juryCollection = collection(db, 'jury_members');
   const faqsCollection = collection(db, 'faqs');
+  const minigameCollection = collection(db, 'minigame_scores');
 
   // Real-time listener for Teams from Firestore
   const unsubscribeTeams = onSnapshot(
@@ -290,11 +304,35 @@ export function initFirestoreSync() {
     }
   );
 
+  // Real-time listener for Minigame Scores from Firestore
+  const unsubscribeMinigame = onSnapshot(
+    minigameCollection,
+    (snapshot) => {
+      const liveMinigame: MinigameScore[] = [];
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data() as MinigameScore;
+        liveMinigame.push({
+          ...data,
+          id: docSnap.id,
+        });
+      });
+
+      liveMinigame.sort((a, b) => b.score - a.score);
+      cachedMinigameScores = liveMinigame;
+      localStorage.setItem(MINIGAME_STORAGE_KEY, JSON.stringify(liveMinigame));
+      window.dispatchEvent(new Event('badeendlympics_minigame_change'));
+    },
+    (error) => {
+      handleFirestoreError(error, OperationType.GET, 'minigame_scores');
+    }
+  );
+
   return () => {
     unsubscribeTeams();
     unsubscribeScores();
     unsubscribeJury();
     unsubscribeFaqs();
+    unsubscribeMinigame();
   };
 }
 
@@ -550,6 +588,35 @@ export function resetAllData(): void {
   localStorage.setItem(SCORES_STORAGE_KEY, JSON.stringify([]));
 
   window.dispatchEvent(new Event('badeendlympics_data_change'));
+}
+
+// --- MINIGAME SCORES ---
+
+export async function saveMinigameScore(
+  scoreData: Omit<MinigameScore, 'id' | 'createdAt'>
+): Promise<MinigameScore> {
+  const newId = `mini-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const fullEntry: MinigameScore = {
+    ...scoreData,
+    id: newId,
+    createdAt: new Date().toISOString(),
+  };
+
+  // Optimistic local update
+  cachedMinigameScores = [fullEntry, ...cachedMinigameScores].sort((a, b) => b.score - a.score);
+  localStorage.setItem(MINIGAME_STORAGE_KEY, JSON.stringify(cachedMinigameScores));
+  window.dispatchEvent(new Event('badeendlympics_minigame_change'));
+
+  // Persist to Firestore
+  try {
+    const cleanEntry = sanitizeForFirestore(fullEntry);
+    await setDoc(doc(db, 'minigame_scores', newId), cleanEntry);
+  } catch (err) {
+    console.error('Error saving minigame score to Firestore:', err);
+    handleFirestoreError(err, OperationType.CREATE, `minigame_scores/${newId}`);
+  }
+
+  return fullEntry;
 }
 
 // --- AUTH SESSIONS ---
