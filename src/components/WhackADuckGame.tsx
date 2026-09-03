@@ -529,7 +529,7 @@ export const WhackADuckGame: React.FC = () => {
       } else if (hole.duckType === 'pirate') {
         // Penalty duck!
         basePoints = -20;
-        text = '-20! 🏴‍☠️ GERAAPT!';
+        text = '-20! 🏴‍☠️';
         playSound('penalty');
       } else {
         playSound('squeak');
@@ -1079,7 +1079,7 @@ export const WhackADuckGame: React.FC = () => {
                               <option value="">-- Geen team / Individueel --</option>
                               {registeredTeams.map((t) => (
                                 <option key={t.id} value={t.name}>
-                                  🦆 {t.name}
+                                  {t.name}
                                 </option>
                               ))}
                             </select>
