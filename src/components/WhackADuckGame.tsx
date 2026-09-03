@@ -21,6 +21,7 @@ import {
   getStoredMinigameScores,
   saveMinigameScore,
   getStoredTeams,
+  getTeamSession,
 } from '../utils/storage';
 
 // Duck & Item types with points, duration, and styling
@@ -66,7 +67,9 @@ export const WhackADuckGame: React.FC = () => {
   const [playerNameInput, setPlayerNameInput] = useState<string>(() => {
     return localStorage.getItem('badeend_player_name') || '';
   });
-  const [selectedTeamInput, setSelectedTeamInput] = useState<string>('');
+  const [selectedTeamInput, setSelectedTeamInput] = useState<string>(() => {
+    return getTeamSession()?.name || '';
+  });
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [scoreSubmitted, setScoreSubmitted] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -1055,21 +1058,50 @@ export const WhackADuckGame: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-0.5">
-                          TEAM VERTEGENWOORDIGEN (OPTIONEEL)
-                        </label>
-                        <select
-                          value={selectedTeamInput}
-                          onChange={(e) => setSelectedTeamInput(e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none"
-                        >
-                          <option value="">-- Geen team / Individueel --</option>
-                          {registeredTeams.map((t) => (
-                            <option key={t.id} value={t.name}>
-                              {t.name}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center justify-between mb-0.5">
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700">
+                            TEAM VERTEGENWOORDIGEN (OPTIONEEL)
+                          </label>
+                          {registeredTeams.length > 0 && (
+                            <span className="text-[10px] text-amber-700 font-bold">
+                              {registeredTeams.length} ingeschreven {registeredTeams.length === 1 ? 'team' : 'teams'}
+                            </span>
+                          )}
+                        </div>
+
+                        {registeredTeams.length > 0 ? (
+                          <div className="space-y-1.5">
+                            <select
+                              value={selectedTeamInput}
+                              onChange={(e) => setSelectedTeamInput(e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50"
+                            >
+                              <option value="">-- Geen team / Individueel --</option>
+                              {registeredTeams.map((t) => (
+                                <option key={t.id} value={t.name}>
+                                  🦆 {t.name}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="text-[10px] text-slate-500 font-medium block">
+                              Selecteer je officiële team om punten te verzamelen voor het teamklassement.
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5">
+                            <input
+                              type="text"
+                              maxLength={40}
+                              value={selectedTeamInput}
+                              onChange={(e) => setSelectedTeamInput(e.target.value)}
+                              placeholder="Bijv. De Gele Snelle Kwakers (of leeg laten)"
+                              className="w-full px-2.5 py-1.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50"
+                            />
+                            <span className="text-[10px] text-slate-500 font-medium block">
+                              Typ je teamnaam in, of meld je team officieel aan via het inschrijfformulier.
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
