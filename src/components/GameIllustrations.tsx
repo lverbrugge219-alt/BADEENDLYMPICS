@@ -488,136 +488,190 @@ export const GoudenBadeendIllustration: React.FC<IllustrationProps> = ({ classNa
 );
 
 /**
- * 4. PIRAAT (Pirate Rubber Duck)
- * Yellow rubber duck wearing pirate hat with skull & crossbones,
- * black eye-patch over eye, bold black sticker outline.
+ * 4. PIRATENHOED (Pirate Captain Hat / Bicorne)
+ * Matches the user's uploaded illustration:
+ * - Wide classic pirate bicorne hat with curved turned-up wings
+ * - Bold golden-yellow trim along the outer upper curve
+ * - Charcoal black hat crown with dimensional shading
+ * - White Jolly Roger skull with crossed bones in the center
+ * - Turned-up black brim along the bottom with curved highlight
+ * - Bold black sticker outline
  */
-export const PiraatIllustration: React.FC<IllustrationProps> = ({ className = 'w-12 h-12', size }) => (
+export const PiratenhoedIllustration: React.FC<IllustrationProps> = ({ className = 'w-12 h-12', size }) => (
   <svg
-    viewBox="0 0 120 110"
+    viewBox="0 0 140 76"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
     style={size ? { width: size, height: size } : undefined}
   >
     <defs>
-      <radialGradient id="piraat-body" cx="45%" cy="35%" r="65%">
-        <stop offset="0%" stopColor="#FFF275" />
-        <stop offset="60%" stopColor="#FACC15" />
+      {/* Crown Gradient */}
+      <linearGradient id="pirate-crown-grad" x1="50%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stopColor="#27272A" />
+        <stop offset="40%" stopColor="#18181B" />
+        <stop offset="100%" stopColor="#09090B" />
+      </linearGradient>
+      {/* Gold Trim Gradient */}
+      <linearGradient id="pirate-gold-trim" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stopColor="#EAB308" />
+        <stop offset="15%" stopColor="#FDE047" />
+        <stop offset="50%" stopColor="#FACC15" />
+        <stop offset="85%" stopColor="#FDE047" />
         <stop offset="100%" stopColor="#EAB308" />
-      </radialGradient>
-      <linearGradient id="piraat-beak" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#FB923C" />
-        <stop offset="70%" stopColor="#EA580C" />
-        <stop offset="100%" stopColor="#9A3412" />
+      </linearGradient>
+      {/* Brim Gradient */}
+      <linearGradient id="pirate-brim-grad" x1="50%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stopColor="#27272A" />
+        <stop offset="70%" stopColor="#18181B" />
+        <stop offset="100%" stopColor="#09090B" />
       </linearGradient>
     </defs>
 
-    {/* Body (facing left/front) */}
+    {/* ================= GOLD TRIM OUTER BAND ================= */}
+    {/* Full outer hat shape with gold ribbon */}
     <path
-      d="M 104 56 C 110 50 104 36 90 38 C 84 39 76 42 68 46 C 53 42 33 45 22 54 C 10 64 12 82 20 90 C 30 100 58 102 82 98 C 100 94 106 80 104 68 C 103 62 105 58 104 56 Z"
-      fill="url(#piraat-body)"
+      d="M 10 52 
+         C 8 36 24 16 46 10 
+         C 58 6 82 6 94 10 
+         C 116 16 132 36 130 52 
+         C 124 50 114 42 108 32 
+         C 96 16 80 14 70 14 
+         C 60 14 44 16 32 32 
+         C 26 42 16 50 10 52 Z"
+      fill="url(#pirate-gold-trim)"
       stroke="#18181B"
-      strokeWidth="4.5"
-      strokeLinejoin="round"
-    />
-
-    {/* Wing */}
-    <path
-      d="M 80 60 C 68 54 50 56 44 66 C 40 74 46 82 60 84 C 74 86 84 76 84 68 C 84 64 82 61 80 60 Z"
-      fill="#FDE047"
-      stroke="#18181B"
-      strokeWidth="3.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-
-    {/* Head */}
-    <circle
-      cx="52"
-      cy="42"
-      r="23"
-      fill="url(#piraat-body)"
-      stroke="#18181B"
-      strokeWidth="4.5"
-    />
-
-    {/* Orange Beak */}
-    <path
-      d="M 42 46 C 32 44 14 46 10 52 C 9 56 14 60 26 60 C 36 60 44 56 42 46 Z"
-      fill="url(#piraat-beak)"
-      stroke="#18181B"
-      strokeWidth="3.5"
-      strokeLinejoin="round"
-    />
-
-    {/* Eyepatch Strap (red/black cord diagonal across face) */}
-    <path
-      d="M 28 32 L 74 46"
-      stroke="#DC2626"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-
-    {/* Black Pirate Eyepatch over right eye */}
-    <ellipse
-      cx="38"
-      cy="39"
-      rx="7"
-      ry="8"
-      transform="rotate(12 38 39)"
-      fill="#18181B"
-      stroke="#000000"
-      strokeWidth="1.5"
-    />
-
-    {/* Left eye visible (glossy cartoon eye) */}
-    <circle cx="58" cy="40" r="5.5" fill="#18181B" />
-    <circle cx="60" cy="38.5" r="2" fill="#FFFFFF" />
-
-    {/* PIRATE BICORNE / CAPTAIN HAT ON TOP! */}
-    {/* Hat back shadow/rim */}
-    <path
-      d="M 18 34 C 16 16 36 6 52 14 C 68 6 88 16 86 34 C 78 30 65 28 52 28 C 39 28 26 30 18 34 Z"
-      fill="#18181B"
-      stroke="#000000"
       strokeWidth="4"
       strokeLinejoin="round"
     />
 
-    {/* Red hat ribbon/trim along base */}
+    {/* ================= MAIN HAT CROWN ================= */}
     <path
-      d="M 22 33 C 32 30 42 29 52 29 C 62 29 72 30 82 33"
-      stroke="#EF4444"
-      strokeWidth="3.5"
-      strokeLinecap="round"
+      d="M 12 50 
+         C 20 40 30 30 40 22 
+         C 50 15 60 14 70 14 
+         C 80 14 90 15 100 22 
+         C 110 30 120 40 128 50 
+         C 124 58 108 64 88 65 
+         C 78 65 62 65 52 65 
+         C 32 64 16 58 12 50 Z"
+      fill="url(#pirate-crown-grad)"
+      stroke="#18181B"
+      strokeWidth="4"
+      strokeLinejoin="round"
     />
 
-    {/* Gold hat trim / edge highlight */}
+    {/* Crown subtle lighting curve */}
     <path
-      d="M 22 30 C 26 18 38 12 52 18 C 66 12 78 18 82 30"
-      stroke="#FACC15"
+      d="M 38 26 C 48 18 60 16 70 16 C 80 16 92 18 102 26"
+      stroke="#3F3F46"
       strokeWidth="2.5"
       strokeLinecap="round"
-      fill="none"
     />
 
-    {/* Skull and Crossbones on pirate hat (White) */}
-    {/* Crossbones */}
+    {/* ================= JOLLY ROGER (SKULL & CROSSBONES) ================= */}
+    {/* Crossed Bones (White with black stroke) */}
+    {/* Bone 1: Top-Left to Bottom-Right */}
+    {/* Top-Left Knobs */}
+    <circle cx="58" cy="22" r="2.4" fill="#FFFFFF" />
+    <circle cx="61" cy="20" r="2.4" fill="#FFFFFF" />
+    {/* Bottom-Right Knobs */}
+    <circle cx="79" cy="40" r="2.4" fill="#FFFFFF" />
+    <circle cx="82" cy="38" r="2.4" fill="#FFFFFF" />
+    {/* Bone 1 Shaft */}
     <path
-      d="M 44 18 L 60 26 M 60 18 L 44 26"
+      d="M 59 21 L 81 39"
       stroke="#FFFFFF"
+      strokeWidth="3.2"
+      strokeLinecap="round"
+    />
+
+    {/* Bone 2: Top-Right to Bottom-Left */}
+    {/* Top-Right Knobs */}
+    <circle cx="79" cy="20" r="2.4" fill="#FFFFFF" />
+    <circle cx="82" cy="22" r="2.4" fill="#FFFFFF" />
+    {/* Bottom-Left Knobs */}
+    <circle cx="58" cy="38" r="2.4" fill="#FFFFFF" />
+    <circle cx="61" cy="40" r="2.4" fill="#FFFFFF" />
+    {/* Bone 2 Shaft */}
+    <path
+      d="M 81 21 L 59 39"
+      stroke="#FFFFFF"
+      strokeWidth="3.2"
+      strokeLinecap="round"
+    />
+
+    {/* Skull Cranium */}
+    <circle
+      cx="70"
+      cy="29"
+      r="6.8"
+      fill="#FFFFFF"
+      stroke="#18181B"
+      strokeWidth="1.2"
+    />
+
+    {/* Skull Jaw */}
+    <path
+      d="M 66.8 33 
+         L 73.2 33 
+         L 72.4 37.5 
+         L 67.6 37.5 Z"
+      fill="#FFFFFF"
+      stroke="#18181B"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    />
+
+    {/* Skull Eye Sockets */}
+    <ellipse cx="67.8" cy="29.2" rx="1.6" ry="2" fill="#18181B" />
+    <ellipse cx="72.2" cy="29.2" rx="1.6" ry="2" fill="#18181B" />
+
+    {/* Skull Nose Cavity (inverted heart/triangle) */}
+    <path
+      d="M 70 31.2 L 69.2 32.8 L 70.8 32.8 Z"
+      fill="#18181B"
+    />
+
+    {/* Skull Teeth Slits */}
+    <line x1="68.8" y1="35" x2="68.8" y2="37.5" stroke="#18181B" strokeWidth="0.8" />
+    <line x1="70" y1="35" x2="70" y2="37.5" stroke="#18181B" strokeWidth="0.8" />
+    <line x1="71.2" y1="35" x2="71.2" y2="37.5" stroke="#18181B" strokeWidth="0.8" />
+
+    {/* ================= TURNED-UP FRONT BRIM ================= */}
+    <path
+      d="M 12 50 
+         C 26 53 48 57 70 57 
+         C 92 57 114 53 128 50 
+         C 126 58 114 66 94 69 
+         C 82 71 58 71 46 69 
+         C 26 66 14 58 12 50 Z"
+      fill="url(#pirate-brim-grad)"
+      stroke="#18181B"
+      strokeWidth="4"
+      strokeLinejoin="round"
+    />
+
+    {/* Brim Top Highlight Sheen */}
+    <path
+      d="M 18 52 C 40 55 70 56 100 54 C 114 53 122 51 124 51"
+      stroke="#52525B"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+
+    {/* Bottom edge shadow rim */}
+    <path
+      d="M 38 68 C 54 70 86 70 102 68"
+      stroke="#09090B"
       strokeWidth="2"
       strokeLinecap="round"
     />
-    {/* Skull */}
-    <circle cx="52" cy="20" r="3.2" fill="#FFFFFF" />
-    <rect x="50.8" y="22" width="2.4" height="2" rx="0.5" fill="#FFFFFF" />
-    {/* Skull eyes */}
-    <circle cx="51.2" cy="20" r="0.7" fill="#18181B" />
-    <circle cx="52.8" cy="20" r="0.7" fill="#18181B" />
   </svg>
 );
+
+// Alias to ensure backward compatibility
+export const PiraatIllustration = PiratenhoedIllustration;
 
 /**
  * 5. TROFEE (Golden Championship Trophy Cup)

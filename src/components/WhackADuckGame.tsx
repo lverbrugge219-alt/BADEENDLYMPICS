@@ -27,7 +27,7 @@ import {
   BadeendIllustration,
   PilsIllustration,
   GoudenBadeendIllustration,
-  PiraatIllustration,
+  PiratenhoedIllustration,
   TrofeeIllustration,
 } from './GameIllustrations';
 
@@ -955,11 +955,11 @@ export const WhackADuckGame: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Piraat Badeend (Penalty) */}
+                  {/* Piratenhoed (Penalty) */}
                   {hole.duckType === 'pirate' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
-                        <PiraatIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md" />
+                        <PiratenhoedIllustration className="w-16 h-12 sm:w-20 sm:h-14 drop-shadow-md" />
                       </div>
                       <span className="text-[9px] font-black uppercase bg-rose-500 text-white border border-black px-1 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         PAS OP! -20
@@ -1194,9 +1194,9 @@ export const WhackADuckGame: React.FC = () => {
           <span className="font-black text-[11px] block text-black">Gouden Badeend</span>
           <span className="text-[10px] text-amber-800 font-black">+75 pt (frenzy)</span>
         </div>
-        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
-          <PiraatIllustration className="w-10 h-10 mb-1" />
-          <span className="font-bold text-[11px] block text-black">Piraat</span>
+        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-between">
+          <PiratenhoedIllustration className="w-14 h-9 mb-1" />
+          <span className="font-bold text-[11px] block text-black">Piratenhoed</span>
           <span className="text-[10px] text-rose-600 font-black">-20 pt (ontwijk)</span>
         </div>
       </div>
