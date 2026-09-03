@@ -23,6 +23,13 @@ import {
   getStoredTeams,
   getTeamSession,
 } from '../utils/storage';
+import {
+  BadeendIllustration,
+  PilsIllustration,
+  GoudenBadeendIllustration,
+  PiraatIllustration,
+  TrofeeIllustration,
+} from './GameIllustrations';
 
 // Duck & Item types with points, duration, and styling
 export type DuckType = 'standard' | 'pils' | 'trophy' | 'pirate' | 'golden';
@@ -516,7 +523,7 @@ export const WhackADuckGame: React.FC = () => {
       if (hole.duckType === 'golden') {
         // Gouden Badeend!
         basePoints = 75;
-        text = '+75! 👑 GOUDEN BADEEND!';
+        text = '+75! 👑';
         playSound('golden');
       } else if (hole.duckType === 'pils') {
         basePoints = 35;
@@ -902,8 +909,8 @@ export const WhackADuckGame: React.FC = () => {
                   {/* Standard Gele Badeend */}
                   {hole.duckType === 'standard' && (
                     <div className="flex flex-col items-center animate-bounce-subtle">
-                      <span className="text-4xl sm:text-5xl drop-shadow-md filter">🐥</span>
-                      <span className="text-[9px] font-black uppercase bg-amber-400 border border-black px-1 text-black mt-0.5">
+                      <BadeendIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md" />
+                      <span className="text-[9px] font-black uppercase bg-amber-400 border border-black px-1 text-black mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         +10
                       </span>
                     </div>
@@ -913,7 +920,7 @@ export const WhackADuckGame: React.FC = () => {
                   {hole.duckType === 'pils' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
-                        <span className="text-4xl sm:text-5xl drop-shadow-md">🍺</span>
+                        <PilsIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md" />
                         <span className="absolute -top-1 -right-1 text-xs">✨</span>
                       </div>
                       <span className="text-[9px] font-black uppercase bg-amber-400 text-amber-950 border border-black px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
@@ -926,7 +933,7 @@ export const WhackADuckGame: React.FC = () => {
                   {hole.duckType === 'trophy' && (
                     <div className="flex flex-col items-center">
                       <div className="relative animate-pulse">
-                        <span className="text-4xl sm:text-5xl drop-shadow-md">🏆</span>
+                        <TrofeeIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md" />
                         <span className="absolute -top-1 -left-1 text-xs">⭐</span>
                       </div>
                       <span className="text-[9px] font-black uppercase bg-yellow-300 text-yellow-950 border border-black px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
@@ -939,14 +946,11 @@ export const WhackADuckGame: React.FC = () => {
                   {hole.duckType === 'golden' && (
                     <div className="flex flex-col items-center">
                       <div className="relative animate-bounce">
-                        <span className="text-4xl sm:text-5xl drop-shadow-lg filter drop-shadow-[0_0_8px_rgba(251,191,36,0.9)]">
-                          👑
-                        </span>
-                        <span className="text-4xl sm:text-5xl -mt-4 block">🦆</span>
-                        <span className="absolute -top-2 -right-2 text-sm animate-spin">✨</span>
+                        <GoudenBadeendIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-lg filter drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]" />
+                        <span className="absolute -top-1 -right-1 text-xs animate-spin">✨</span>
                       </div>
                       <span className="text-[9px] font-black uppercase bg-black text-amber-400 border border-amber-400 px-1.5 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                        GOUDEN BADEEND! +75
+                        +75
                       </span>
                     </div>
                   )}
@@ -955,9 +959,9 @@ export const WhackADuckGame: React.FC = () => {
                   {hole.duckType === 'pirate' && (
                     <div className="flex flex-col items-center">
                       <div className="relative">
-                        <span className="text-4xl sm:text-5xl drop-shadow-md">🏴‍☠️</span>
+                        <PiraatIllustration className="w-14 h-14 sm:w-16 sm:h-16 drop-shadow-md" />
                       </div>
-                      <span className="text-[9px] font-black uppercase bg-rose-500 text-white border border-black px-1 mt-0.5">
+                      <span className="text-[9px] font-black uppercase bg-rose-500 text-white border border-black px-1 mt-0.5 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
                         PAS OP! -20
                       </span>
                     </div>
@@ -1170,29 +1174,29 @@ export const WhackADuckGame: React.FC = () => {
 
       {/* Item Guide & Scoring Legend */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-2 border-t-2 border-slate-100 text-center mb-8">
-        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🐥</span>
-          <span className="font-bold text-[11px] block">Badeend</span>
+        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+          <BadeendIllustration className="w-10 h-10 mb-1" />
+          <span className="font-bold text-[11px] block text-black">Badeend</span>
           <span className="text-[10px] text-slate-600 font-bold">+10 pt</span>
         </div>
-        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🍺</span>
-          <span className="font-bold text-[11px] block">Pils!</span>
-          <span className="text-[10px] text-amber-600 font-black">+35 pt (snel)</span>
+        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+          <PilsIllustration className="w-10 h-10 mb-1" />
+          <span className="font-bold text-[11px] block text-black">Pils!</span>
+          <span className="text-[10px] text-amber-700 font-black">+35 pt (snel)</span>
         </div>
-        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🏆</span>
-          <span className="font-bold text-[11px] block">Trofee</span>
-          <span className="text-[10px] text-yellow-700 font-black">+20 pt</span>
+        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+          <TrofeeIllustration className="w-10 h-10 mb-1" />
+          <span className="font-bold text-[11px] block text-black">Trofee</span>
+          <span className="text-[10px] text-yellow-800 font-black">+20 pt</span>
         </div>
-        <div className="p-2 bg-amber-50 border-2 border-black text-xs shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-          <span className="text-lg block mb-0.5">👑🦆</span>
+        <div className="p-2.5 bg-amber-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+          <GoudenBadeendIllustration className="w-10 h-10 mb-1" />
           <span className="font-black text-[11px] block text-black">Gouden Badeend</span>
           <span className="text-[10px] text-amber-800 font-black">+75 pt (frenzy)</span>
         </div>
-        <div className="p-2 bg-slate-50 border border-black/20 text-xs">
-          <span className="text-lg block mb-0.5">🏴‍☠️</span>
-          <span className="font-bold text-[11px] block">Piraat</span>
+        <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center">
+          <PiraatIllustration className="w-10 h-10 mb-1" />
+          <span className="font-bold text-[11px] block text-black">Piraat</span>
           <span className="text-[10px] text-rose-600 font-black">-20 pt (ontwijk)</span>
         </div>
       </div>
