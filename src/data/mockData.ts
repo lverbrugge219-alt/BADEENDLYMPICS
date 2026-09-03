@@ -83,10 +83,9 @@ export const SPELEN: SpelInfo[] = [
   },
 ];
 
-export const ADMIN_CREDENTIALS = {
-  email: 'l.verbrugge219@gmail.com',
-  password: 'Badeendgames2027',
-};
+// VEILIGHEID: Logingegevens van de organisatie worden uitsluitend server-side
+// verwerkt via beveiligde /api/auth/admin endpoints met rate limiting en versleutelde tokens.
+// Er worden GEEN wachtwoorden of gevoelige beheerdersgegevens in client bundles opgeslagen.
 
 export const INITIAL_TEAMS: Team[] = [];
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageRoute, SpelId, Team, ScoreEntry, JuryMember } from '../types';
-import { SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
+import { SPELEN } from '../data/mockData';
 import {
   getStoredTeams,
   getStoredScores,
@@ -12,7 +12,10 @@ import {
   deleteScore,
   deleteTeam,
   getAdminSession,
-  setAdminSession,
+  getAdminSessionData,
+  verifyAdminSession,
+  logoutAdmin,
+  changeAdminPassword,
 } from '../utils/storage';
 import {
   getAnalyticsStats,
@@ -61,6 +64,9 @@ import {
   Star,
   Shield,
   HelpCircle,
+  KeyRound,
+  Lock,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface AdminPageProps {
@@ -95,6 +101,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const [scoreToDelete, setScoreToDelete] = useState<{ id: string; description: string } | null>(null);
   const [showClearAnalyticsModal, setShowClearAnalyticsModal] = useState<boolean>(false);
   const [isClearingAnalytics, setIsClearingAnalytics] = useState<boolean>(false);
+
+  const [adminEmail, setAdminEmail] = useState<string>(
+    () => getAdminSessionData()?.email || 'organisatie'
+  );
+  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [currentPasswordInput, setCurrentPasswordInput] = useState<string>('');
+  const [newPasswordInput, setNewPasswordInput] = useState<string>('');
+  const [confirmPasswordInput, setConfirmPasswordInput] = useState<string>('');
+  const [passwordChangeLoading, setPasswordChangeLoading] = useState<boolean>(false);
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
 
   // Status & toast
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -143,6 +159,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const refreshData = () => {
     const authStatus = getAdminSession();
     setIsAdmin(authStatus);
+    const sessionData = getAdminSessionData();
+    if (sessionData?.email) {
+      setAdminEmail(sessionData.email);
+    }
     const t = getStoredTeams();
     const s = getStoredScores();
     const j = getStoredJuryMembers();
@@ -158,6 +178,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
   useEffect(() => {
     refreshData();
+    verifyAdminSession().then((isValid) => {
+      setIsAdmin(isValid);
+    });
     loadAnalytics();
     window.addEventListener('badeendlympics_data_change', refreshData);
     window.addEventListener('badeendlympics_auth_change', refreshData);
@@ -263,9 +286,49 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
     showToast(`Team ${teamToDelete.name} verwijderd`);
   };
 
-  const handleLogout = () => {
-    setAdminSession(false);
+  const handleLogout = async () => {
+    await logoutAdmin();
+    setIsAdmin(false);
+    showToast('Veilig uitgelogd');
     onNavigate('scores');
+  };
+
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordChangeError(null);
+
+    if (!currentPasswordInput || !newPasswordInput) {
+      setPasswordChangeError('Vul zowel het huidige als het nieuwe wachtwoord in.');
+      return;
+    }
+
+    if (newPasswordInput.length < 8) {
+      setPasswordChangeError('Het nieuwe wachtwoord moet minimaal 8 tekens lang zijn.');
+      return;
+    }
+
+    if (newPasswordInput !== confirmPasswordInput) {
+      setPasswordChangeError('Het nieuwe wachtwoord en de herhaling komen niet overeen.');
+      return;
+    }
+
+    setPasswordChangeLoading(true);
+    try {
+      const res = await changeAdminPassword(currentPasswordInput, newPasswordInput);
+      if (res.success) {
+        showToast('Wachtwoord succesvol en veilig gewijzigd!');
+        setShowPasswordModal(false);
+        setCurrentPasswordInput('');
+        setNewPasswordInput('');
+        setConfirmPasswordInput('');
+      } else {
+        setPasswordChangeError(res.message);
+      }
+    } catch {
+      setPasswordChangeError('Er trad een onverwachte netwerkfout op.');
+    } finally {
+      setPasswordChangeLoading(false);
+    }
   };
 
   // Human readable page names
@@ -348,7 +411,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 pb-6 border-b-2 border-slate-100">
           <div>
             <span className="text-sky-500 font-display font-black text-xs sm:text-sm tracking-widest uppercase block mb-1">
-              ORGANISATIE · {ADMIN_CREDENTIALS.email}
+              ORGANISATIE · {adminEmail}
             </span>
             <h1 className="font-display font-black text-4xl sm:text-6xl uppercase tracking-tight leading-none text-black">
               {activeTab === 'scores'
@@ -423,6 +486,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
               className="px-3.5 py-2 bg-white border-2 border-black font-display font-black text-xs uppercase tracking-wider hover:bg-slate-50 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
             >
               LEADERBOARD
+            </button>
+            <button
+              onClick={() => {
+                setShowPasswordModal(true);
+                setPasswordChangeError(null);
+                setCurrentPasswordInput('');
+                setNewPasswordInput('');
+                setConfirmPasswordInput('');
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-amber-400 text-black border-2 border-black font-display font-black text-xs uppercase tracking-wider hover:bg-amber-300 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+              title="Organisatie wachtwoord veilig wijzigen"
+            >
+              <KeyRound size={14} /> WACHTWOORD
             </button>
             <button
               onClick={handleLogout}
@@ -1703,6 +1779,104 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal for Changing Admin Password */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="bg-white border-2 border-black p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-black">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-amber-400 border-2 border-black flex items-center justify-center">
+                  <KeyRound size={18} />
+                </div>
+                <h3 className="font-display font-black text-lg uppercase tracking-tight">
+                  WACHTWOORD WIJZIGEN
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPasswordModal(false)}
+                className="w-7 h-7 border-2 border-black bg-white hover:bg-slate-100 flex items-center justify-center font-black text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-semibold mb-5 leading-relaxed">
+              Wijzig hier het wachtwoord van het organisatie-account. Het nieuwe wachtwoord wordt direct server-side versleuteld met sterke PBKDF2 hashing en salt.
+            </p>
+
+            {passwordChangeError && (
+              <div className="mb-4 p-3 bg-rose-50 border-2 border-rose-500 text-rose-800 text-xs font-bold flex items-start gap-2">
+                <AlertCircle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                <div>{passwordChangeError}</div>
+              </div>
+            )}
+
+            <form onSubmit={handleChangePasswordSubmit} className="space-y-4">
+              <div>
+                <label className="block font-display font-black text-[11px] uppercase tracking-wider text-black mb-1">
+                  HUIDIG WACHTWOORD *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={currentPasswordInput}
+                  onChange={(e) => setCurrentPasswordInput(e.target.value)}
+                  placeholder="Voer je huidige wachtwoord in"
+                  className="w-full px-3 py-2.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50/50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-display font-black text-[11px] uppercase tracking-wider text-black mb-1">
+                  NIEUW WACHTWOORD * (MIN. 8 TEKENS)
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPasswordInput}
+                  onChange={(e) => setNewPasswordInput(e.target.value)}
+                  placeholder="Minimaal 8 tekens"
+                  className="w-full px-3 py-2.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50/50"
+                />
+              </div>
+
+              <div>
+                <label className="block font-display font-black text-[11px] uppercase tracking-wider text-black mb-1">
+                  HERHAAL NIEUW WACHTWOORD *
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={confirmPasswordInput}
+                  onChange={(e) => setConfirmPasswordInput(e.target.value)}
+                  placeholder="Herhaal nieuw wachtwoord"
+                  className="w-full px-3 py-2.5 bg-white border-2 border-black text-xs font-bold text-black focus:outline-none focus:bg-amber-50/50"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  disabled={passwordChangeLoading}
+                  className="px-4 py-2.5 border-2 border-black bg-white hover:bg-slate-50 font-display font-black text-xs uppercase tracking-wider cursor-pointer"
+                >
+                  ANNULEREN
+                </button>
+                <button
+                  type="submit"
+                  disabled={passwordChangeLoading}
+                  className="px-5 py-2.5 border-2 border-black bg-black text-amber-400 hover:bg-slate-900 font-display font-black text-xs uppercase tracking-wider cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50"
+                >
+                  {passwordChangeLoading ? 'BEZIG MET OPSLAAN...' : 'OPSLAAN & BEVEILIGEN'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

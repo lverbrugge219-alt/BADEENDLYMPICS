@@ -6,8 +6,8 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
-import { Team, ScoreEntry, SpelId, JuryMember, FaqItem } from '../types';
-import { SPELEN, ADMIN_CREDENTIALS } from '../data/mockData';
+import { Team, ScoreEntry, SpelId, JuryMember, FaqItem, AdminSession, AdminAuthResponse } from '../types';
+import { SPELEN } from '../data/mockData';
 import { DEFAULT_JURY_MEMBERS } from '../data/juryAvatars';
 import { hashPassword, verifyPassword, isSha256Hash } from './crypto';
 
@@ -16,6 +16,8 @@ const SCORES_STORAGE_KEY = 'badeendlympics_scores_v5';
 const JURY_STORAGE_KEY = 'badeendlympics_jury_v1';
 const FAQS_STORAGE_KEY = 'badeendlympics_faqs_v1';
 const ADMIN_SESSION_KEY = 'badeendlympics_admin_session';
+const ADMIN_TOKEN_KEY = 'badeendlympics_admin_token';
+const ADMIN_SESSION_DATA_KEY = 'badeendlympics_admin_data';
 const TEAM_SESSION_KEY = 'badeendlympics_team_session';
 const JURY_SESSION_KEY = 'badeendlympics_jury_session';
 
@@ -554,22 +556,112 @@ export function resetAllData(): void {
 
 export function getAdminSession(): boolean {
   try {
-    return localStorage.getItem(ADMIN_SESSION_KEY) === 'true';
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    const dataRaw = localStorage.getItem(ADMIN_SESSION_DATA_KEY);
+    if (!token || !dataRaw) {
+      return false;
+    }
+    const sessionData: AdminSession = JSON.parse(dataRaw);
+    if (Date.now() > sessionData.expiresAt) {
+      clearAdminSession();
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
 }
 
-export function setAdminSession(loggedIn: boolean): void {
+export function getAdminSessionData(): AdminSession | null {
   try {
-    if (loggedIn) {
+    const dataRaw = localStorage.getItem(ADMIN_SESSION_DATA_KEY);
+    if (!dataRaw) return null;
+    const sessionData: AdminSession = JSON.parse(dataRaw);
+    if (Date.now() > sessionData.expiresAt) {
+      clearAdminSession();
+      return null;
+    }
+    return sessionData;
+  } catch {
+    return null;
+  }
+}
+
+export function clearAdminSession(): void {
+  try {
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+    localStorage.removeItem(ADMIN_TOKEN_KEY);
+    localStorage.removeItem(ADMIN_SESSION_DATA_KEY);
+  } catch (e) {
+    console.error('Error clearing admin session:', e);
+  }
+}
+
+export function setAdminSession(
+  loggedIn: boolean,
+  sessionData?: { token: string; email: string; expiresAt: number }
+): void {
+  try {
+    if (loggedIn && sessionData) {
       localStorage.setItem(ADMIN_SESSION_KEY, 'true');
+      localStorage.setItem(ADMIN_TOKEN_KEY, sessionData.token);
+      localStorage.setItem(ADMIN_SESSION_DATA_KEY, JSON.stringify(sessionData));
     } else {
-      localStorage.removeItem(ADMIN_SESSION_KEY);
+      clearAdminSession();
     }
     window.dispatchEvent(new Event('badeendlympics_auth_change'));
   } catch (e) {
-    console.error(e);
+    console.error('Error setting admin session:', e);
+  }
+}
+
+export async function verifyAdminSession(): Promise<boolean> {
+  try {
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) {
+      clearAdminSession();
+      return false;
+    }
+
+    const res = await fetch('/api/auth/admin/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data.valid === true;
+    } else {
+      clearAdminSession();
+      window.dispatchEvent(new Event('badeendlympics_auth_change'));
+      return false;
+    }
+  } catch {
+    // If offline or network issue, fallback to checking expiration
+    return getAdminSession();
+  }
+}
+
+export async function logoutAdmin(): Promise<void> {
+  try {
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (token) {
+      await fetch('/api/auth/admin/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ token }),
+      }).catch(() => {});
+    }
+  } finally {
+    clearAdminSession();
+    window.dispatchEvent(new Event('badeendlympics_auth_change'));
   }
 }
 
@@ -937,13 +1029,94 @@ export async function authenticateTeam(
 }
 
 /**
- * Authenticates the admin user using SHA-256 verification.
+ * Authenticates the admin user via the secure server-side API.
+ * Protected against brute force with rate-limiting, timing-safe hashing,
+ * and signed HMAC session tokens. No passwords exist in client code.
  */
 export async function authenticateAdmin(
   email: string,
   inputPassword: string
-): Promise<boolean> {
-  const matchEmail = email.trim().toLowerCase() === ADMIN_CREDENTIALS.email.toLowerCase();
-  if (!matchEmail) return false;
-  return verifyPassword(inputPassword, ADMIN_CREDENTIALS.password);
+): Promise<AdminAuthResponse> {
+  try {
+    const res = await fetch('/api/auth/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email.trim(),
+        password: inputPassword,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success && data.token) {
+      setAdminSession(true, {
+        token: data.token,
+        email: data.user?.email || email.trim().toLowerCase(),
+        expiresAt: data.expiresAt || Date.now() + 8 * 60 * 60 * 1000,
+      });
+      return {
+        success: true,
+        token: data.token,
+        user: data.user,
+        expiresAt: data.expiresAt,
+        message: data.message,
+      };
+    }
+
+    return {
+      success: false,
+      message: data.message || 'Onjuiste inloggegevens voor de organisatie.',
+      remainingAttempts: data.remainingAttempts,
+      lockedUntil: data.lockedUntil,
+    };
+  } catch (error) {
+    console.error('Admin authentication error:', error);
+    return {
+      success: false,
+      message: 'Kan geen beveiligde verbinding maken met de server. Probeer het opnieuw.',
+    };
+  }
+}
+
+/**
+ * Changes the admin password securely on the server with current password verification.
+ */
+export async function changeAdminPassword(
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const token = localStorage.getItem(ADMIN_TOKEN_KEY);
+    if (!token) {
+      return { success: false, message: 'Geen actieve beheerderssessie. Log opnieuw in.' };
+    }
+
+    const res = await fetch('/api/auth/admin/change-password', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      if (data.token) {
+        const sessionInfo = getAdminSessionData();
+        setAdminSession(true, {
+          token: data.token,
+          email: sessionInfo?.email || 'organisatie',
+          expiresAt: data.expiresAt || Date.now() + 8 * 60 * 60 * 1000,
+        });
+      }
+      return { success: true, message: data.message || 'Wachtwoord succesvol gewijzigd.' };
+    }
+
+    return { success: false, message: data.message || 'Wachtwoord wijzigen mislukt.' };
+  } catch (err) {
+    console.error('Change admin password error:', err);
+    return { success: false, message: 'Verbindingsfout bij het wijzigen van het wachtwoord.' };
+  }
 }

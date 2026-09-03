@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { PageRoute } from '../types';
-import { ADMIN_CREDENTIALS } from '../data/mockData';
 import {
-  setAdminSession,
   setTeamSession,
   setJurySession,
   authenticateTeam,
@@ -20,6 +18,7 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowRight,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface LoginPageProps {
@@ -59,21 +58,19 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // 1. Check if it's the Admin credentials
-    const isAdminValid = await authenticateAdmin(inputIdentifier, inputPassword);
-
-    if (isAdminValid) {
-      setAdminSession(true);
-      showToast('Ingelogd als organisatie');
-      setTimeout(() => {
-        onNavigate('scorebeheer');
-      }, 300);
-      return;
-    }
-
-    // If tab is organisatie and credentials don't match
+    // 1. If tab is organisatie, verify via secure server endpoint
     if (activeTab === 'organisatie') {
-      setErrorMessage('Onjuist e-mailadres of wachtwoord voor de organisatie.');
+      const adminResult = await authenticateAdmin(inputIdentifier, inputPassword);
+      if (adminResult.success) {
+        showToast('Beveiligde toegang verleend als organisatie');
+        setTimeout(() => {
+          onNavigate('scorebeheer');
+        }, 300);
+        return;
+      }
+      setErrorMessage(
+        adminResult.message || 'Onjuist e-mailadres of wachtwoord voor de organisatie.'
+      );
       return;
     }
 
@@ -184,7 +181,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               onClick={() => {
                 setActiveTab('organisatie');
                 setErrorMessage(null);
-                if (emailOrTeam === '') setEmailOrTeam(ADMIN_CREDENTIALS.email);
               }}
               className={`py-3 px-2 font-display font-black text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer transition-all border-l-2 border-black ${
                 activeTab === 'organisatie'
@@ -261,7 +257,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   required
                   placeholder={
                     activeTab === 'organisatie'
-                      ? 'l.verbrugge219@gmail.com'
+                      ? 'bijv. organisatie@badeendlympics.nl'
                       : activeTab === 'jury'
                       ? 'bijv. jan.jansen@voorbeeld.nl'
                       : 'bijv. jan.jansen@voorbeeld.nl of DE KWAKELITEITEN'

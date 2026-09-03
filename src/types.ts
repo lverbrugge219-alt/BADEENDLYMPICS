@@ -107,4 +107,23 @@ export interface FaqItem {
   updatedAt?: string;
 }
 
+export interface AdminSession {
+  token: string;
+  email: string;
+  expiresAt: number;
+}
+
+export interface AdminAuthResponse {
+  success: boolean;
+  message?: string;
+  token?: string;
+  user?: {
+    email: string;
+    role: 'admin';
+  };
+  expiresAt?: number;
+  remainingAttempts?: number;
+  lockedUntil?: number;
+}
+
 
