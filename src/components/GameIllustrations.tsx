@@ -6,124 +6,227 @@ interface IllustrationProps {
 }
 
 /**
- * 1. BADEEND (Standard Yellow Rubber Duck)
- * Classic cheerful yellow rubber duck with big shiny eye, perky tail, orange bill,
- * bold black sticker outline, matching the user's illustration banner.
+ * 1. BADEEND (Standard Yellow Rubber Duck - 3/4 Front View)
+ * Matches the user's uploaded illustration:
+ * - 3/4 front view with head slightly tilted
+ * - Cute feather tuft on top of head
+ * - Two large glossy black cartoon eyes with white reflection highlights
+ * - Vibrant orange bill with nostril markings and friendly open smiling mouth
+ * - Chubby rounded body with side wing and perky tail flick
+ * - Bold black sticker outline
  */
 export const BadeendIllustration: React.FC<IllustrationProps> = ({ className = 'w-12 h-12', size }) => (
   <svg
-    viewBox="0 0 120 110"
+    viewBox="0 0 100 112"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
     style={size ? { width: size, height: size } : undefined}
   >
     <defs>
-      {/* Body Gradient */}
-      <radialGradient id="badeend-body" cx="45%" cy="35%" r="65%">
-        <stop offset="0%" stopColor="#FFF275" />
-        <stop offset="55%" stopColor="#FACC15" />
-        <stop offset="90%" stopColor="#EAB308" />
-        <stop offset="100%" stopColor="#CA8A04" />
-      </radialGradient>
-      {/* Head Gradient */}
-      <radialGradient id="badeend-head" cx="40%" cy="30%" r="60%">
+      {/* Head & Body Yellow Radial Gradient */}
+      <radialGradient id="badeend-front-head" cx="42%" cy="30%" r="65%">
         <stop offset="0%" stopColor="#FFF9A6" />
-        <stop offset="60%" stopColor="#FACC15" />
-        <stop offset="95%" stopColor="#EAB308" />
+        <stop offset="45%" stopColor="#FDE047" />
+        <stop offset="80%" stopColor="#FACC15" />
+        <stop offset="100%" stopColor="#EAB308" />
+      </radialGradient>
+      {/* Body Gradient */}
+      <radialGradient id="badeend-front-body" cx="48%" cy="40%" r="60%">
+        <stop offset="0%" stopColor="#FFF58C" />
+        <stop offset="50%" stopColor="#FACC15" />
+        <stop offset="85%" stopColor="#EAB308" />
         <stop offset="100%" stopColor="#CA8A04" />
       </radialGradient>
-      {/* Beak Gradient */}
-      <linearGradient id="badeend-beak" x1="0%" y1="0%" x2="0%" y2="100%">
+      {/* Upper Beak Gradient */}
+      <linearGradient id="badeend-front-beak" x1="0%" y1="0%" x2="0%" y2="100%">
         <stop offset="0%" stopColor="#FB923C" />
-        <stop offset="70%" stopColor="#F97316" />
+        <stop offset="40%" stopColor="#F97316" />
+        <stop offset="100%" stopColor="#EA580C" />
+      </linearGradient>
+      {/* Mouth Interior */}
+      <linearGradient id="badeend-mouth" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#9A3412" />
         <stop offset="100%" stopColor="#C2410C" />
       </linearGradient>
-      {/* Subtle Shadow */}
-      <linearGradient id="badeend-belly-shadow" x1="0%" y1="0%" x2="0%" y2="100%">
-        <stop offset="0%" stopColor="#EAB308" stopOpacity="0" />
-        <stop offset="100%" stopColor="#B45309" stopOpacity="0.4" />
+      {/* Soft Neck Shadow */}
+      <radialGradient id="badeend-neck-shadow" cx="55%" cy="20%" r="70%">
+        <stop offset="0%" stopColor="#D97706" stopOpacity="0.6" />
+        <stop offset="100%" stopColor="#D97706" stopOpacity="0" />
+      </radialGradient>
+      {/* Bottom base shadow */}
+      <linearGradient id="badeend-base-shadow" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stopColor="#CA8A04" stopOpacity="0" />
+        <stop offset="100%" stopColor="#A16207" stopOpacity="0.5" />
       </linearGradient>
     </defs>
 
-    {/* Tail feathers & Main chubby body */}
+    {/* ================= BODY & TAIL LAYER ================= */}
+    {/* Main chubby body including upturned tail on the left and chest on the right */}
     <path
-      d="M 14 56 C 8 50 14 36 28 38 C 34 39 42 42 50 46 C 65 42 85 45 96 54 C 108 64 106 82 98 90 C 88 100 60 102 36 98 C 18 94 12 80 14 68 C 15 62 13 58 14 56 Z"
-      fill="url(#badeend-body)"
+      d="M 36 56 
+         C 26 56 16 52 14 55 
+         C 12 59 17 68 20 74 
+         C 23 81 28 88 38 94 
+         C 48 99 68 100 80 94 
+         C 90 89 94 80 93 72 
+         C 92 63 86 58 78 57 
+         C 74 57 70 56 68 56 Z"
+      fill="url(#badeend-front-body)"
       stroke="#18181B"
       strokeWidth="4.5"
       strokeLinejoin="round"
     />
 
-    {/* Belly bottom shade curve */}
+    {/* Bottom base shading */}
     <path
-      d="M 22 82 C 34 94 62 98 88 92 C 96 86 102 76 100 68 C 96 82 76 92 50 92 C 32 92 24 86 22 82 Z"
-      fill="url(#badeend-belly-shadow)"
+      d="M 24 78 C 34 94 66 98 86 92 C 82 95 68 99 50 99 C 34 99 26 90 24 78 Z"
+      fill="url(#badeend-base-shadow)"
     />
 
-    {/* Wing definition */}
+    {/* Side Wing on Left Body */}
     <path
-      d="M 38 60 C 50 54 68 56 74 66 C 78 74 72 82 58 84 C 44 86 34 76 34 68 C 34 64 36 61 38 60 Z"
+      d="M 21 64 
+         C 32 60 42 62 44 70 
+         C 46 76 40 82 28 82 
+         C 21 82 18 73 21 64 Z"
       fill="#FDE047"
       stroke="#18181B"
       strokeWidth="3.5"
-      strokeLinecap="round"
       strokeLinejoin="round"
     />
+    {/* Wing feather contour lines */}
     <path
-      d="M 48 64 C 58 64 64 70 66 76"
+      d="M 26 69 C 34 68 39 71 39 76"
       stroke="#CA8A04"
-      strokeWidth="2.5"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M 23 74 C 28 74 34 76 34 79"
+      stroke="#CA8A04"
+      strokeWidth="1.8"
       strokeLinecap="round"
     />
 
-    {/* Head */}
-    <circle
-      cx="68"
-      cy="34"
-      r="25"
-      fill="url(#badeend-head)"
-      stroke="#18181B"
-      strokeWidth="4.5"
+    {/* Neck Shadow beneath the head */}
+    <path
+      d="M 38 56 C 48 64 68 64 76 58 C 70 66 48 66 38 56 Z"
+      fill="url(#badeend-neck-shadow)"
     />
 
-    {/* Cheek shine highlight */}
+    {/* ================= HEAD & TUFT LAYER ================= */}
+    {/* Head with tuft on top, round cheeks */}
+    <path
+      d="M 52 14 
+         C 50 10 54 8 57 12 
+         C 59 9 64 10 63 15 
+         C 76 17 87 28 88 42 
+         C 89 54 81 64 68 67 
+         C 58 69 44 68 34 61 
+         C 26 53 25 39 33 26 
+         C 38 18 45 14 52 14 Z"
+      fill="url(#badeend-front-head)"
+      stroke="#18181B"
+      strokeWidth="4.5"
+      strokeLinejoin="round"
+    />
+
+    {/* Soft cheek & forehead light sheen */}
     <ellipse
-      cx="56"
+      cx="43"
       cy="24"
-      rx="7"
-      ry="4"
-      transform="rotate(-25 56 24)"
+      rx="9"
+      ry="5"
+      transform="rotate(-15 43 24)"
       fill="#FFFFFF"
       fillOpacity="0.45"
     />
 
-    {/* Orange Duck Bill / Beak */}
+    {/* ================= EYES ================= */}
+    {/* Left Eye (our left, slightly larger) */}
+    <ellipse
+      cx="46.5"
+      cy="42.5"
+      rx="5.2"
+      ry="6.8"
+      transform="rotate(4 46.5 42.5)"
+      fill="#18181B"
+    />
+    {/* Left eye shiny white catchlight */}
+    <ellipse
+      cx="44.8"
+      cy="39.8"
+      rx="2.1"
+      ry="2.8"
+      transform="rotate(-10 44.8 39.8)"
+      fill="#FFFFFF"
+    />
+    <circle cx="48.5" cy="44.5" r="0.9" fill="#FFFFFF" fillOpacity="0.7" />
+
+    {/* Right Eye (our right, slightly smaller perspective) */}
+    <ellipse
+      cx="77.5"
+      cy="41.5"
+      rx="4.8"
+      ry="6.4"
+      transform="rotate(-4 77.5 41.5)"
+      fill="#18181B"
+    />
+    {/* Right eye shiny white catchlight */}
+    <ellipse
+      cx="76"
+      cy="39"
+      rx="1.9"
+      ry="2.5"
+      transform="rotate(-10 76 39)"
+      fill="#FFFFFF"
+    />
+    <circle cx="79.2" cy="43.5" r="0.8" fill="#FFFFFF" fillOpacity="0.7" />
+
+    {/* ================= BEAK & SMILE ================= */}
+    {/* Lower Beak / Open smiling mouth (reddish interior & lower lip) */}
     <path
-      d="M 76 38 C 86 36 104 38 108 44 C 109 48 104 53 92 53 C 82 53 74 48 76 38 Z"
-      fill="url(#badeend-beak)"
+      d="M 52 53 
+         C 52 61 74 61 74 53 
+         C 70 58 56 58 52 53 Z"
+      fill="url(#badeend-mouth)"
+      stroke="#18181B"
+      strokeWidth="2.5"
+      strokeLinejoin="round"
+    />
+    {/* Lower bill lip rim */}
+    <path
+      d="M 54 58 C 60 63 68 63 72 58"
+      stroke="#EA580C"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+    />
+
+    {/* Upper Beak (wide curved smiling duck bill) */}
+    <path
+      d="M 46 49 
+         C 53 45 73 45 80 48 
+         C 84 50 82 54 75 55 
+         C 69 56 56 56 50 55 
+         C 45 54 43 51 46 49 Z"
+      fill="url(#badeend-front-beak)"
       stroke="#18181B"
       strokeWidth="3.5"
       strokeLinejoin="round"
     />
+
+    {/* Upper beak highlight curve */}
     <path
-      d="M 80 44 C 90 44 98 46 104 46"
-      stroke="#9A3412"
-      strokeWidth="2"
+      d="M 52 48 C 58 46 68 46 74 48"
+      stroke="#FED7AA"
+      strokeWidth="1.8"
       strokeLinecap="round"
     />
 
-    {/* Big glossy cartoon eye (facing right) */}
-    <circle cx="68" cy="28" r="6" fill="#18181B" />
-    <circle cx="70" cy="26" r="2.2" fill="#FFFFFF" />
-    <circle cx="66.5" cy="30" r="1.1" fill="#FFFFFF" />
-    {/* Subtle second eye eyebrow / hint */}
-    <path
-      d="M 50 26 C 51 23 54 22 56 23"
-      stroke="#18181B"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-    />
+    {/* Nostril indentations on beak */}
+    <ellipse cx="60.5" cy="48" rx="0.9" ry="1.2" fill="#9A3412" />
+    <ellipse cx="66" cy="48" rx="0.9" ry="1.2" fill="#9A3412" />
   </svg>
 );
 
