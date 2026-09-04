@@ -142,7 +142,7 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onNavigate }) 
         <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-slate-50 border-2 border-black">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
             <ShieldCheck size={16} className="text-amber-500" />
-            Scores worden realtime bijgewerkt door de jury van Scouting Van Brederode.
+            Scores worden realtime bijgewerkt door de jury.
           </div>
           <button
             onClick={() => onNavigate('scorebeheer')}
