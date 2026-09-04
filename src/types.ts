@@ -5,6 +5,11 @@ export type SpelId =
   | 'geheim-04'
   | 'geheim-05';
 
+export interface SpelRuleSection {
+  title: string;
+  items: string[];
+}
+
 export interface SpelInfo {
   id: SpelId;
   number: string; // "01", "02", "03", "04", "05"
@@ -14,7 +19,16 @@ export interface SpelInfo {
   description: string;
   imageUrl?: string;
   isSecret: boolean;
+  revealDate?: string;
+  revealIsoDate?: string;
   rules: string[];
+  goal?: string;
+  location?: string;
+  resultType?: string;
+  materials?: string[];
+  sections?: SpelRuleSection[];
+  scoringDetails?: string;
+  unlockedData?: Partial<SpelInfo>;
 }
 
 export interface Team {

@@ -99,6 +99,7 @@ export default function App() {
           <SportDetailPage
             spelId={getSpelIdFromRoute(currentPage)}
             onNavigate={handleNavigate}
+            onNavigateLoginWithTab={handleNavigateWithTab}
           />
         )}
       </main>

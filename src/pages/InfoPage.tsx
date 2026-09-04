@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { PageRoute, FaqItem } from '../types';
 import { getStoredFaqs } from '../utils/storage';
-import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Shield, Mail, HelpCircle, UserCheck } from 'lucide-react';
+import { MapPin, Calendar, Users, Trophy, ChevronDown, ChevronUp, Shield, Mail, HelpCircle, UserCheck, ScrollText } from 'lucide-react';
+import { GeneralRulesView } from '../components/GeneralRulesView';
 
 interface InfoPageProps {
   onNavigate: (page: PageRoute) => void;
@@ -123,30 +124,35 @@ export const InfoPage: React.FC<InfoPageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Erecode & Reglement */}
-        <div className="bg-slate-50 border-2 border-black p-8 sm:p-12 mb-16 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center gap-3 mb-6">
+        {/* Erecode */}
+        <div className="bg-slate-50 border-2 border-black p-6 sm:p-8 mb-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex items-center gap-3 mb-4">
             <Shield size={24} className="text-amber-500" />
-            <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black">
-              DE OFFICIËLE BADEEND ERECODE
+            <h2 className="font-display font-black text-2xl sm:text-3xl uppercase tracking-tight text-black">
+              DE BADEEND ERECODE
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm font-semibold text-slate-800">
-            <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">01. FAIR PLAY</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm font-semibold text-slate-800">
+            <div className="border-2 border-black bg-white p-4">
+              <span className="font-display font-black text-amber-500 text-base block mb-1">01. FAIR PLAY</span>
               Geen stiekeme hulpmiddelen, geen lithium-aandrijving in de badeend en geen discussie met de jury.
             </div>
-            <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">02. TEAMKLEDING AANGEMOEDIGD</span>
+            <div className="border-2 border-black bg-white p-4">
+              <span className="font-display font-black text-amber-500 text-base block mb-1">02. TEAMKLEDING AANGEMOEDIGD</span>
               Trek je meest epische matchende outfits, geelste teamshirts of badeend-kostuums aan. Teamkleding wordt maximaal toegejuicht!
             </div>
-            <div className="border-2 border-black bg-white p-5">
-              <span className="font-display font-black text-amber-500 text-lg block mb-1">03. 5 DISCIPLINES</span>
-              De disciplines worden de komende tijd bekendgemaakt. Alle teamleden schikken zich sportief naar de beslissingen van de jury!
+            <div className="border-2 border-black bg-white p-4">
+              <span className="font-display font-black text-amber-500 text-base block mb-1">03. SPORTIVITEIT</span>
+              Alle teamleden schikken zich sportief naar de beslissingen van de jury en het toernooireglement.
             </div>
           </div>
         </div>
+
+        {/* Volledig Algemeen Reglement */}
+        <section id="algemeen-reglement" className="mb-16 scroll-mt-24">
+          <GeneralRulesView showTitle={true} />
+        </section>
 
         {/* FAQ Accordion */}
         <div className="max-w-3xl mx-auto">

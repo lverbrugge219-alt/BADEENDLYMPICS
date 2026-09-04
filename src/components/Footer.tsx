@@ -57,7 +57,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   onClick={() => onNavigate('spel-geheim-01')}
                   className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Nog Geheim #01
+                  Spel 01: Nog geheim (21 sept · 00:00 CEST)
                 </button>
               </li>
               <li>
@@ -101,6 +101,20 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               EVENT
             </h4>
             <ul className="space-y-2.5 text-xs font-semibold">
+              <li>
+                <button
+                  onClick={() => {
+                    onNavigate('info');
+                    setTimeout(() => {
+                      document.getElementById('algemeen-reglement')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 50);
+                  }}
+                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5"
+                >
+                  <span>Algemeen Reglement</span>
+                  <span className="px-1.5 py-0.2 bg-amber-400 text-black text-[9px] font-black uppercase">14 regels</span>
+                </button>
+              </li>
               <li>
                 <button
                   onClick={() => onNavigate('info')}

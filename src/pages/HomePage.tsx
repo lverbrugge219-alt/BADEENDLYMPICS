@@ -91,15 +91,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             className="bg-black text-white border-2 border-black p-6 sm:p-7 group cursor-pointer hover:shadow-[6px_6px_0px_0px_rgba(250,204,21,1)] transition-all flex flex-col justify-between min-h-[260px] relative overflow-hidden"
           >
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="bg-amber-400 text-black px-2 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
                   SPEL 01
+                </span>
+                <span className="bg-zinc-800 text-amber-400 border border-zinc-700 px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider">
+                  21 SEPT 2026 · 00:00 CEST
                 </span>
                 <span className="bg-sky-400 text-black px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider border border-black">
                   🎮 TEASER
                 </span>
               </div>
-              <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all">
+              <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all shrink-0">
                 <ArrowUpRight size={18} />
               </div>
             </div>
@@ -111,11 +114,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 NOG GEHEIM #01
               </h3>
               <p className="text-xs text-slate-400 font-medium mt-1">
-                Eerste discipline • Inclusief interactieve mini-game training!
+                Officiële onthulling op 21 september 2026 om 00:00 CEST (UTC+2) • Inclusief interactieve trainings-teaser!
               </p>
             </div>
             <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
-              <span>SPEEL DE TEASER</span> →
+              <span>SPEEL DE TEASER & BEKIJK ONTHULLINGSTIJD</span> →
             </div>
           </div>
 
