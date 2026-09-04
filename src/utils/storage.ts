@@ -377,6 +377,9 @@ export async function saveTeam(
       'geheim-05': null,
     },
     totaal: 0,
+    avatarType: teamData.avatarType || 'preset',
+    avatarPresetId: teamData.avatarPresetId || 'duck-gold',
+    photoUrl: teamData.photoUrl || undefined,
   };
 
   // 1. Update local cache immediately
@@ -421,6 +424,9 @@ export async function updateTeam(
     members: updatedData.members
       ? updatedData.members.map((m) => m.trim()).filter(Boolean)
       : oldTeam.members,
+    avatarType: updatedData.avatarType !== undefined ? updatedData.avatarType : oldTeam.avatarType,
+    avatarPresetId: updatedData.avatarPresetId !== undefined ? updatedData.avatarPresetId : oldTeam.avatarPresetId,
+    photoUrl: updatedData.photoUrl !== undefined ? updatedData.photoUrl : oldTeam.photoUrl,
   };
 
   cachedTeams[index] = updatedTeam;

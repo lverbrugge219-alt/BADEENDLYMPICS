@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { PageRoute } from '../types';
+import { PageRoute, PresetAvatarId } from '../types';
 import { saveTeam, setTeamSession } from '../utils/storage';
 import { CheckCircle2, Users, Mail, ShieldAlert, Lock, Eye, EyeOff, AlertCircle, ArrowRight, UserCheck, Award } from 'lucide-react';
+import { AvatarSelector } from '../components/AvatarSelector';
+import { JuryAvatar } from '../components/JuryAvatar';
 import confetti from 'canvas-confetti';
 
 interface SignUpPageProps {
@@ -17,12 +19,20 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [members, setMembers] = useState<string[]>(['', '', '', '']);
 
+  // Team Avatar State
+  const [avatarType, setAvatarType] = useState<'preset' | 'custom'>('preset');
+  const [avatarPresetId, setAvatarPresetId] = useState<PresetAvatarId>('duck-beer');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [submittedTeam, setSubmittedTeam] = useState<{
     id: string;
     name: string;
     email: string;
+    avatarType?: 'preset' | 'custom';
+    avatarPresetId?: PresetAvatarId;
+    photoUrl?: string;
   } | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -77,6 +87,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
       email: captainEmail,
       password: password,
       members: filteredMembers,
+      avatarType: avatarType,
+      avatarPresetId: avatarPresetId,
+      photoUrl: avatarType === 'custom' && photoUrl ? photoUrl : undefined,
     });
 
     try {
@@ -94,6 +107,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
       id: newTeam.id,
       name: newTeam.name,
       email: newTeam.email,
+      avatarType: newTeam.avatarType,
+      avatarPresetId: newTeam.avatarPresetId,
+      photoUrl: newTeam.photoUrl,
     });
 
     // Automatically set team session so they can go to team portal directly
@@ -109,6 +125,9 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
     setPassword('');
     setConfirmPassword('');
     setMembers(['', '', '', '']);
+    setAvatarType('preset');
+    setAvatarPresetId('duck-gold');
+    setPhotoUrl(null);
     setErrorMessage(null);
     setSubmittedTeam(null);
   };
@@ -152,8 +171,17 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
             {submittedTeam ? (
               /* Success Confirmation Card */
               <div className="bg-white border-2 border-black p-6 sm:p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-                <div className="w-12 h-12 rounded-full border-2 border-black bg-sky-400 flex items-center justify-center mb-6">
-                  <CheckCircle2 size={28} className="text-black" />
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-12 h-12 rounded-full border-2 border-black bg-sky-400 flex items-center justify-center shrink-0">
+                    <CheckCircle2 size={28} className="text-black" />
+                  </div>
+                  <JuryAvatar
+                    avatarType={submittedTeam.avatarType || 'preset'}
+                    avatarPresetId={submittedTeam.avatarPresetId || 'duck-gold'}
+                    photoUrl={submittedTeam.photoUrl}
+                    size="lg"
+                    showBadge
+                  />
                 </div>
 
                 <h2 className="font-display font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-tight text-black mb-4">
@@ -328,6 +356,21 @@ export const SignUpPage: React.FC<SignUpPageProps> = ({ onNavigate }) => {
                     ))}
                   </div>
                 </div>
+
+                {/* Team Avatar Selection */}
+                <AvatarSelector
+                  avatarType={avatarType}
+                  setAvatarType={setAvatarType}
+                  avatarPresetId={avatarPresetId}
+                  setAvatarPresetId={setAvatarPresetId}
+                  photoUrl={photoUrl}
+                  setPhotoUrl={setPhotoUrl}
+                  title="KIES JULLIE TEAM AVATAR OF TEAMFOTO"
+                  subtitle="Kies net als de jury een unieke badeend mascotte of upload een eigen teamfoto van jullie 4 strijders."
+                  presetTabLabel="BADEEND MASCOTTES (10)"
+                  customTabLabel="EIGEN TEAMFOTO UPLOADEN"
+                  onError={(err) => setErrorMessage(err)}
+                />
 
                 <button
                   type="submit"

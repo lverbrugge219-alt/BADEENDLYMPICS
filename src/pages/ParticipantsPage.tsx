@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PageRoute, Team } from '../types';
 import { getStoredTeams } from '../utils/storage';
 import { MarqueeTicker } from '../components/MarqueeTicker';
+import { JuryAvatar } from '../components/JuryAvatar';
 import { Users, Plus } from 'lucide-react';
 
 interface ParticipantsPageProps {
@@ -67,9 +68,14 @@ export const ParticipantsPage: React.FC<ParticipantsPageProps> = ({ onNavigate }
                 >
                   {/* Top Yellow Header */}
                   <div className="bg-amber-400 border-b-2 border-black p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 bg-black text-white font-display font-black text-xl flex items-center justify-center shrink-0">
-                      {firstLetter}
-                    </div>
+                    <JuryAvatar
+                      avatarType={team.avatarType || 'preset'}
+                      avatarPresetId={team.avatarPresetId || 'duck-gold'}
+                      photoUrl={team.photoUrl}
+                      size="sm"
+                      showBadge={false}
+                      className="shrink-0 bg-white"
+                    />
                     <div className="min-w-0 flex-1">
                       <h3 className="font-display font-black text-lg sm:text-xl uppercase tracking-tight text-black truncate">
                         {team.name}

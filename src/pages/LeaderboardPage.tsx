@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageRoute, Team, ScoreEntry } from '../types';
 import { getStoredTeams, getStoredScores, recalculateTeamTotals } from '../utils/storage';
+import { JuryAvatar } from '../components/JuryAvatar';
 import { Trophy, ShieldCheck, ArrowRight } from 'lucide-react';
 
 interface LeaderboardPageProps {
@@ -100,7 +101,17 @@ export const LeaderboardPage: React.FC<LeaderboardPageProps> = ({ onNavigate }) 
                       {index + 1}
                     </td>
                     <td className="py-4 px-4 font-display font-black text-base uppercase text-black">
-                      {team.name}
+                      <div className="flex items-center gap-3">
+                        <JuryAvatar
+                          avatarType={team.avatarType || 'preset'}
+                          avatarPresetId={team.avatarPresetId || 'duck-gold'}
+                          photoUrl={team.photoUrl}
+                          size="xs"
+                          showBadge={false}
+                          className="shrink-0"
+                        />
+                        <span className="truncate">{team.name}</span>
+                      </div>
                     </td>
                     <td className="py-4 px-4 text-center font-semibold text-slate-700">
                       {team.scores?.['geheim-01'] ?? '—'}

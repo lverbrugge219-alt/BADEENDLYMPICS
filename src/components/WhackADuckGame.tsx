@@ -616,7 +616,7 @@ export const WhackADuckGame: React.FC = () => {
 
   const getRankTitle = (pts: number): string => {
     if (pts >= 750) return 'Legendarische Meestermepper 👑';
-    if (pts >= 500) return 'Olympisch Badeend-Mepper';
+    if (pts >= 500) return 'Badeendlympics Badeend-Mepper';
     if (pts >= 300) return 'Badmeester';
     if (pts >= 150) return 'Snelle Snater';
     return 'Amateur';

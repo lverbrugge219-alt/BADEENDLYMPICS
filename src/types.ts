@@ -41,6 +41,9 @@ export interface Team {
   registeredAt: string;
   scores?: Record<string, number | null>; // spelId -> points
   totaal?: number;
+  avatarType?: 'preset' | 'custom';
+  avatarPresetId?: PresetAvatarId;
+  photoUrl?: string; // Compressed Base64 image data URL (WebP/JPEG, max 30-50KB)
 }
 
 export interface ScoreEntry {
@@ -54,15 +57,26 @@ export interface ScoreEntry {
 }
 
 export type PresetAvatarId =
+  // Bier
+  | 'duck-beer'
+  | 'duck-beer-helmet'
+  // Scouting
+  | 'duck-scout'
+  | 'duck-campfire'
+  // Sporten & Kracht
+  | 'duck-athlete'
+  | 'duck-weightlifter'
+  | 'duck-swimmer'
+  // Toernooi & Competitie
   | 'duck-referee'
-  | 'duck-judge-wig'
   | 'duck-gold'
+  | 'duck-sunglasses'
+  // Legacy / fallbacks
+  | 'duck-judge-wig'
   | 'duck-detective'
   | 'duck-captain'
-  | 'duck-sunglasses'
   | 'duck-pirate'
   | 'duck-whistle'
-  | 'duck-swimmer'
   | 'duck-wizard';
 
 export interface JuryMember {

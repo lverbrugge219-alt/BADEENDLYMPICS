@@ -44,6 +44,18 @@
         "totaal": {
           "type": "number",
           "description": "Calculated total points across all 5 disciplines."
+        },
+        "avatarType": {
+          "type": "string",
+          "description": "Avatar type: 'preset' or 'custom'."
+        },
+        "avatarPresetId": {
+          "type": "string",
+          "description": "Preset duck avatar ID."
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Compressed Base64 photo data URL."
         }
       },
       "required": ["id", "name", "aanvoerder", "email", "members", "registeredAt"]
@@ -225,7 +237,7 @@
         },
         "rankTitle": {
           "type": "string",
-          "description": "Earned Olympic rank title.",
+          "description": "Earned Badeendlympics rank title.",
           "maxLength": 100
         },
         "createdAt": {

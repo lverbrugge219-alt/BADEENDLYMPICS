@@ -730,17 +730,26 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                       {teams.map((team) => (
                         <div
                           key={team.id}
-                          className="border-2 border-black p-3 flex items-center justify-between bg-slate-50 hover:bg-white transition-colors"
+                          className="border-2 border-black p-3 flex items-center justify-between bg-slate-50 hover:bg-white transition-colors gap-2"
                         >
-                          <div>
-                            <div className="font-display font-black text-sm uppercase text-black">
-                              {team.name}
-                            </div>
-                            <div className="text-xs text-slate-600 font-medium">
-                              {team.aanvoerder} · {team.email}
-                            </div>
-                            <div className="text-[11px] text-slate-400 font-medium mt-0.5">
-                              Leden ({team.members.length}): {team.members.join(', ')}
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <JuryAvatar
+                              avatarType={team.avatarType || 'preset'}
+                              avatarPresetId={team.avatarPresetId || 'duck-gold'}
+                              photoUrl={team.photoUrl}
+                              size="sm"
+                              className="shrink-0"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <div className="font-display font-black text-sm uppercase text-black truncate">
+                                {team.name}
+                              </div>
+                              <div className="text-xs text-slate-600 font-medium truncate">
+                                {team.aanvoerder} · {team.email}
+                              </div>
+                              <div className="text-[11px] text-slate-400 font-medium mt-0.5 truncate">
+                                Leden ({team.members.length}): {team.members.join(', ')}
+                              </div>
                             </div>
                           </div>
                           <button

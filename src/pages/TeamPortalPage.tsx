@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PageRoute, Team, ScoreEntry } from '../types';
+import { PageRoute, Team, ScoreEntry, PresetAvatarId } from '../types';
 import {
   getTeamSession,
   setTeamSession,
@@ -9,6 +9,8 @@ import {
   getStoredTeams,
 } from '../utils/storage';
 import { SPELEN } from '../data/mockData';
+import { AvatarSelector } from '../components/AvatarSelector';
+import { JuryAvatar } from '../components/JuryAvatar';
 import {
   Users,
   LogOut,
@@ -34,6 +36,11 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
   const [captainName, setCaptainName] = useState('');
   const [captainEmail, setCaptainEmail] = useState('');
   const [members, setMembers] = useState<string[]>(['', '', '', '']);
+
+  // Avatar states
+  const [avatarType, setAvatarType] = useState<'preset' | 'custom'>('preset');
+  const [avatarPresetId, setAvatarPresetId] = useState<PresetAvatarId>('duck-gold');
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   // Password change state
   const [showPasswordChange, setShowPasswordChange] = useState(false);
@@ -82,6 +89,9 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
     );
     setScores(enriched.scores || {});
     setTotaal(enriched.totaal || 0);
+    setAvatarType(enriched.avatarType || 'preset');
+    setAvatarPresetId(enriched.avatarPresetId || 'duck-gold');
+    setPhotoUrl(enriched.photoUrl || null);
   };
 
   useEffect(() => {
@@ -136,6 +146,9 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
       email: captainEmail,
       members: filteredMembers,
       password: updatedPassword,
+      avatarType: avatarType,
+      avatarPresetId: avatarPresetId,
+      photoUrl: avatarType === 'custom' && photoUrl ? photoUrl : undefined,
     });
 
     if (res) {
@@ -182,16 +195,35 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
       {/* Header */}
       <section className="bg-amber-400 border-b-2 border-black py-10 sm:py-14 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-end justify-between gap-6">
-          <div>
-            <span className="font-display font-black text-xs tracking-widest uppercase block text-black mb-1">
-              TEAM BEHEERPORTAAL
-            </span>
-            <h1 className="font-display font-black text-4xl sm:text-6xl md:text-7xl uppercase tracking-tight leading-none text-black">
-              {currentTeam.name}
-            </h1>
-            <p className="text-xs sm:text-sm font-semibold text-black/80 mt-2">
-              Aanvoerder: <strong className="text-black">{currentTeam.aanvoerder}</strong> ({currentTeam.email})
-            </p>
+          <div className="flex items-center gap-4 sm:gap-6">
+            <JuryAvatar
+              avatarType={currentTeam.avatarType || 'preset'}
+              avatarPresetId={currentTeam.avatarPresetId || 'duck-gold'}
+              photoUrl={currentTeam.photoUrl}
+              size="xl"
+              showBadge
+              className="hidden sm:flex shrink-0 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+            />
+            <div>
+              <div className="flex items-center gap-3 mb-1">
+                <JuryAvatar
+                  avatarType={currentTeam.avatarType || 'preset'}
+                  avatarPresetId={currentTeam.avatarPresetId || 'duck-gold'}
+                  photoUrl={currentTeam.photoUrl}
+                  size="sm"
+                  className="sm:hidden shrink-0"
+                />
+                <span className="font-display font-black text-xs tracking-widest uppercase block text-black">
+                  TEAM BEHEERPORTAAL
+                </span>
+              </div>
+              <h1 className="font-display font-black text-3xl sm:text-5xl md:text-6xl uppercase tracking-tight leading-none text-black">
+                {currentTeam.name}
+              </h1>
+              <p className="text-xs sm:text-sm font-semibold text-black/80 mt-2">
+                Aanvoerder: <strong className="text-black">{currentTeam.aanvoerder}</strong> ({currentTeam.email})
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 self-start sm:self-auto">
@@ -309,6 +341,21 @@ export const TeamPortalPage: React.FC<TeamPortalPageProps> = ({ onNavigate }) =>
                     ))}
                   </div>
                 </div>
+
+                {/* Team Avatar Selection */}
+                <AvatarSelector
+                  avatarType={avatarType}
+                  setAvatarType={setAvatarType}
+                  avatarPresetId={avatarPresetId}
+                  setAvatarPresetId={setAvatarPresetId}
+                  photoUrl={photoUrl}
+                  setPhotoUrl={setPhotoUrl}
+                  title="TEAM AVATAR OF TEAMFOTO WIJZIGEN"
+                  subtitle="Pas jullie mascotte aan of upload een nieuwe teamfoto."
+                  presetTabLabel="BADEEND MASCOTTES (10)"
+                  customTabLabel="EIGEN TEAMFOTO UPLOADEN"
+                  onError={(err) => setErrorMessage(err)}
+                />
 
                 {/* Change Password toggle */}
                 <div className="pt-2 border-t-2 border-slate-100">
