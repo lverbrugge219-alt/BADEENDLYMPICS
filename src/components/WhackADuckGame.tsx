@@ -1196,7 +1196,7 @@ export const WhackADuckGame: React.FC = () => {
         </div>
         <div className="p-2.5 bg-slate-50 border-2 border-black text-xs shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex flex-col items-center justify-between">
           <PiratenhoedIllustration className="w-14 h-9 mb-1" />
-          <span className="font-bold text-[11px] block text-black">Piratenhoed</span>
+          <span className="font-bold text-[11px] block text-black">Piraat</span>
           <span className="text-[10px] text-rose-600 font-black">-20 pt (ontwijk)</span>
         </div>
       </div>
