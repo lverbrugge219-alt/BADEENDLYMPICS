@@ -75,11 +75,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <span>OFFICIËLE DISCIPLINES</span>
             </div>
             <h2 className="font-display font-black text-5xl sm:text-6xl md:text-7xl uppercase leading-none tracking-tight text-black">
-              5 DISCIPLINES <span className="text-stroke-black">BINNENKORT BEKEND</span>
+              5 DISCIPLINES <span className="text-stroke-black">SPEL 1 IS BEKEND!</span>
             </h2>
           </div>
           <p className="text-sm sm:text-base text-slate-700 max-w-md font-medium">
-            De disciplines worden de komende tijd bekendgemaakt door de organisatie. Ieder teamlid moet 18+ zijn. Trek jullie meest epische teamkleding aan en bereid je voor op eeuwige roem!
+            De eerste discipline BUILD & BEER is officieel bekendgemaakt! De overige disciplines worden de komende tijd onthuld door de organisatie. Ieder teamlid moet 18+ zijn.
           </p>
         </div>
 
@@ -95,11 +95,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <span className="bg-amber-400 text-black px-2 py-0.5 font-display font-black text-xs tracking-widest uppercase border border-black">
                   SPEL 01
                 </span>
-                <span className="bg-zinc-800 text-amber-400 border border-zinc-700 px-1.5 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider">
-                  21 SEPT 2026 · 00:00 CEST
-                </span>
                 <span className="bg-sky-400 text-black px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider border border-black">
-                  🎮 TEASER
+                  🎮 MINIGAME
                 </span>
               </div>
               <div className="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center text-slate-400 group-hover:text-black group-hover:bg-amber-400 group-hover:border-black transition-all shrink-0">
@@ -108,17 +105,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
             <div className="my-6">
               <div className="font-display font-black text-6xl text-amber-400 leading-none mb-2">
-                ?
+                01
               </div>
               <h3 className="font-display font-black text-2xl uppercase tracking-tight text-white group-hover:text-amber-400 transition-colors">
-                NOG GEHEIM #01
+                BUILD & BEER
               </h3>
-              <p className="text-xs text-slate-400 font-medium mt-1">
-                Officiële onthulling op 21 september 2026 om 00:00 CEST (UTC+2) • Inclusief interactieve trainings-teaser!
+              <p className="text-xs text-slate-300 font-medium mt-1 leading-relaxed">
+                Biertafel & banken opbouwen en gezamenlijk 4 bier leegdrinken. Snelheid, tactiek én teamwork bepalen de tijd!
               </p>
             </div>
-            <div className="text-[11px] font-black uppercase tracking-wider text-sky-400 flex items-center gap-1.5 font-display">
-              <span>SPEEL DE TEASER & BEKIJK ONTHULLINGSTIJD</span> →
+            <div className="text-[11px] font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5 font-display">
+              <span>BEKIJK SPELREGELS & DETAILS</span> →
             </div>
           </div>
 

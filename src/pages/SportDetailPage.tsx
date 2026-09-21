@@ -329,7 +329,7 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({
                 href="#teaser-game"
                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-amber-400 border-2 border-black font-display font-black text-xs uppercase tracking-wider text-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-300 transition-colors"
               >
-                <Gamepad2 size={16} /> SPEEL DE TRAININGS-TEASER ↓
+                <Gamepad2 size={16} /> SPEEL DE TRAININGS-MINIGAME ↓
               </a>
             )}
           </div>
@@ -352,19 +352,19 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({
                     <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white border-2 border-black p-1.5 mb-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden">
                       <img
                         src="/hammer-duck.png"
-                        alt="Badeendjes Meppen Teaser"
+                        alt="Badeendjes Meppen Training"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-contain"
                       />
                     </div>
                     <span className="font-display font-black text-xs sm:text-sm tracking-widest uppercase text-amber-400 mb-1 flex items-center gap-1.5">
-                      <Sparkles size={14} /> EXCLUSIEVE DISCIPLINE #01 TEASER
+                      <Sparkles size={14} /> EXCLUSIEVE DISCIPLINE #01 TRAINING
                     </span>
                     <h3 className="font-display font-black text-xl sm:text-2xl uppercase tracking-tight text-white mb-2">
                       BADEENDJES MEPPEN
                     </h3>
                     <p className="text-xs text-sky-200 font-medium max-w-xs mb-4">
-                      Test je reflexen en reactievermogen in deze trainingsminigame voor het eerste geheime spel!
+                      Test je reflexen en reactievermogen in deze officiële trainingsminigame voor Build & Beer!
                     </p>
                     <a
                       href="#teaser-game"
@@ -656,14 +656,14 @@ export const SportDetailPage: React.FC<SportDetailPageProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-400 border-2 border-black text-xs font-display font-black uppercase tracking-wider text-black mb-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  <Gamepad2 size={14} /> INTERACTIEVE TEASER GAME
+                  <Gamepad2 size={14} /> INTERACTIEVE TRAININGSGAME
                 </div>
                 <h2 className="font-display font-black text-3xl sm:text-4xl uppercase tracking-tight text-black leading-none">
-                  SPEL 1 TRAINING: BADEENDJES TIKKEN
+                  BUILD & BEER TRAINING: BADEENDJES TIKKEN
                 </h2>
               </div>
               <p className="text-xs sm:text-sm text-slate-600 font-medium max-w-md">
-                Een voorproefje op de snelheid en behendigheid die gevraagd wordt tijdens Spel 1 van de Badeendlympics 2027.
+                Train de reflexen, snelheid en behendigheid van je team voor Spel 01: BUILD & BEER!
               </p>
             </div>
 

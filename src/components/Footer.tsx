@@ -49,15 +49,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           {/* Col 2: Spelen */}
           <div className="md:col-span-3">
             <h4 className="font-display text-xs font-black uppercase tracking-widest text-slate-300 mb-4">
-              5 GEHEIME SPELEN
+              5 DISCIPLINES
             </h4>
             <ul className="space-y-2.5 text-xs font-semibold">
               <li>
                 <button
                   onClick={() => onNavigate('spel-geheim-01')}
-                  className="text-slate-400 hover:text-white transition-colors cursor-pointer text-left"
+                  className="text-amber-400 font-bold hover:text-white transition-colors cursor-pointer text-left"
                 >
-                  Spel 01: Nog geheim (21 sept · 00:00 CEST)
+                  Spel 01: BUILD & BEER
                 </button>
               </li>
               <li>

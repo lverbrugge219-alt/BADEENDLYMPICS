@@ -355,7 +355,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
       case 'privacy':
         return 'Privacyverklaring & Cookies';
       case 'spel-geheim-01':
-        return 'Spel #01 Detail';
+        return 'Spel #01 (Build & Beer)';
       case 'spel-geheim-02':
         return 'Spel #02 Detail';
       case 'spel-geheim-03':

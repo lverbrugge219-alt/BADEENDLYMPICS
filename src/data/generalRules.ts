@@ -79,7 +79,7 @@ export const GENERAL_RULES_SECTIONS: GeneralRuleSection[] = [
     rules: [
       {
         number: 9,
-        text: 'Morsen van bier tijdens een spelonderdeel leidt tot straftijd, ter hoogte van het oordeel van de jury.',
+        text: 'Morsen van bier tijdens een spelonderdeel leidt tot straftijd/strafpunten, ter hoogte van het oordeel van de jury.',
       },
       {
         number: 10,
