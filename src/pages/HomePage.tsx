@@ -75,11 +75,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               <span>OFFICIËLE DISCIPLINES</span>
             </div>
             <h2 className="font-display font-black text-5xl sm:text-6xl md:text-7xl uppercase leading-none tracking-tight text-black">
-              5 DISCIPLINES <span className="text-stroke-black">SPEL 1 IS BEKEND!</span>
+              5 DISCIPLINES
             </h2>
           </div>
           <p className="text-sm sm:text-base text-slate-700 max-w-md font-medium">
-            De eerste discipline BUILD & BEER is officieel bekendgemaakt! De overige disciplines worden de komende tijd onthuld door de organisatie. Ieder teamlid moet 18+ zijn.
+            5 spellen, 1 winnaar. De disciplines worden de komende tijd onthuld door de organisatie, dus houd deze website goed in de gaten. 
           </p>
         </div>
 
